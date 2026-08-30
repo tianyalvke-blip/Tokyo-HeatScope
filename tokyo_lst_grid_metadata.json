@@ -1,0 +1,22 @@
+{
+  "dataset_name": "Tokyo 200m Day-Night LST Grid",
+  "row_count": 14896,
+  "source_grid_count": 14897,
+  "source_indicator_count": 14896,
+  "join_key": "grid_id",
+  "excluded_grid_ids": [
+    0
+  ],
+  "excluded_reason": "Grid 0 exists in Grid200m.shp but has no matching row in Indicators_nofar.csv.",
+  "source_crs": "EPSG:32654",
+  "map_crs": "EPSG:4326",
+  "temperature_fields": {
+    "day_lst": "renamed from Summer",
+    "night_lst": "renamed from Night",
+    "day_night_gap": "day_lst - night_lst"
+  },
+  "null_counts": {
+    "avg_height": 667,
+    "height_variance": 667
+  }
+}

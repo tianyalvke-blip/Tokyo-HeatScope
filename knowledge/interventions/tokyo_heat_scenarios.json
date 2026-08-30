@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0.0",
+  "scenarios": [
+    {
+      "scenario_id": "office_commercial_building",
+      "name_ja": "ビル",
+      "name_en": "office/commercial/public building",
+      "characteristics": [
+        "large_asphalt_surface",
+        "building_hvac_waste_heat"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat",
+        "pedestrian_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "building_configuration",
+        "building_insulation",
+        "energy_efficiency",
+        "exhaust_location",
+        "green_roof",
+        "green_wall",
+        "ground_greening",
+        "heat_reflective_surface",
+        "retroreflective_surface",
+        "roof_heat_shielding",
+        "waste_heat_mitigation",
+        "water_retentive_surface",
+        "window_heat_shielding"
+      ],
+      "characteristics_and_guidance_ja": "建物における対策 ① ビル ( オフィスビル・商業ビル 、 公共施設 ) 【 特徴 】 空調 、 照明 、 OA 機器などのエネルギ - 消費に伴う排熱があり 、 コンクリ - トの建物表面やアスファルトの地表面が熱をためやすい 。 【 対策 】 ・省エネルギ - 機器の導入や建物の断熱の強化により 、 排熱を減少 ( 熱をださない ) ・緑化や遮熱化により 、 建物表面や地表面の蓄熱を抑制 ( 熱をためない ) ・建物建設の際には 、 建物形状に配慮し風通しを確保 ( 熱をためない ) ・敷地内の緑化・保水化や日射の再帰反射により 、 建物周辺の快適性を向上 ( 熱をもらわない ) ・屋根面での対策断熱化遮熱化屋上緑化第 — 部基礎編一 ~ 0 OO 000 ・設備の対策省エネルギー機器の導入排熱の緩和 ( 水冷式など ) ・壁面・窓面での対策窓面の遮熱化再帰反射化・風通し対策建物形状の工夫・設備の対策排熱位置の工夫 OOO もらわ '( 再帰反射化の場合 ) ・建物外構での対策 、 、 熱化壁面緑化緑化保水化各対策の説明 ( 第 4 章参照 ) 省エネルキー機器の導入 → o. 29 排熱の緩和 → P29 排熱位置の工夫 → o. 29 断熱化 → o. 24 遮熱化 → 0.25 、 27 再帰反射化 → 0.28 壁面緑化 → 026 屋上緑化 → P23 建物形状の工夫 → o. 31 建物外構での対策 ( 緑化・遮熱化・保水化なと ) → o. 32 ~ 35 など 10 ー",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 12,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p012-office_commercial_building",
+          "printed_page": 10
+        }
+      ]
+    },
+    {
+      "scenario_id": "apartment",
+      "name_ja": "集合住宅",
+      "name_en": "apartment building",
+      "characteristics": [
+        "large_asphalt_surface",
+        "building_hvac_waste_heat"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat",
+        "pedestrian_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "building_configuration",
+        "building_insulation",
+        "energy_efficiency",
+        "exhaust_location",
+        "green_roof",
+        "green_wall",
+        "ground_greening",
+        "heat_reflective_surface",
+        "retroreflective_surface",
+        "roof_heat_shielding",
+        "shade",
+        "side_surface_cooling",
+        "water_retentive_surface"
+      ],
+      "characteristics_and_guidance_ja": "② 集合住宅 【 特徴 】 コンクリ - トの建物表面やアスファルトの地表面が熱をためやすいほか 、 各戸の空調設備からの排熱がある 。 第 - 部基礎編 ~ 【 対策 】 ・建物の断熱の強化や省エネルギ - 機器の導入により排熱を減少 ( 熱をださない ) ・緑化や遮熱化により建物外皮や地表面への蓄熱を抑制 ( 熱をためない ) ・建物建設の際には建物形状に配慮し風通しを確保 ( 熱をためない ) 歩行空間やべランダでの日除けや緑のカ - テン 、 側面冷却技術を用いて快適性を向上 ( 熱をもらわない ) ・屋根面での対策屋上緑化遮熱化よ 000 ・風通し対策建物形状の工夫・壁面等での対策断熱化遮熱化たなため 0 カ 020 00 ( 060 緑 0 ② ・クールスポットづくり側面冷却日除けめ b6 わため 0 らむよ設慌の対策省エネルギー機器の導入 0 ・建物外構での対策緑化・保水化遮熱化各対策の説明 ( 第 4 章参照 ) 断熱化 → P24 屋上緑化 → o. 23 壁面緑化 → 026 遮熱化 → P25 、 27 、 33 再帰反射化 → o. 28 建物形状の工夫一 o. 31 日除け → o. 36 側面等の冷却 → 0.37 省エネルキー機器の導入 → P29 排熱位置の工夫 → P29 建物外構での対策 ( 緑化・遮熱化・保水化なと ) → 032 ~ 35 にめもらわなと 11",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 13,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p013-apartment",
+          "printed_page": 11
+        }
+      ]
+    },
+    {
+      "scenario_id": "detached_house",
+      "name_ja": "戸建住宅",
+      "name_en": "detached house",
+      "characteristics": [
+        "building_hvac_waste_heat"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat"
+      ],
+      "recommended_interventions": [
+        "building_insulation",
+        "energy_efficiency",
+        "green_wall",
+        "ground_greening",
+        "heat_reflective_surface",
+        "roof_heat_shielding",
+        "shade",
+        "side_surface_cooling",
+        "uchimizu",
+        "water_retentive_surface",
+        "window_heat_shielding"
+      ],
+      "characteristics_and_guidance_ja": "③ 戸建住宅 【 特徴 】 窓面から日射が侵入し 、 また 、 屋根面などが熱をためやすいほか 、 空調設備からの排熱がある 。 【 対策 】 ・建物の断熱の強化や省エネルギ - 機器の導入により排熱を減少 ( 熱をださない ) 日除けや緑のカ - テンを設置して室内への日射の侵入を防ぎ 、 空調負荷を減らして排熱を減少 ( 熱をださない ) ・雨水タンクに集めた水などを利用した打ち水や敷地の緑化により 、 地表面への蓄熱を抑制 ( 熱をためない ) ・屋根面での対策第 — 部基礎編一 ~ ・壁面・窓面での対策遮熱化壁面緑化 ( 緑のカーテン ) 遮 00 0 000 00C ・設備の対策省エネルギー機器の導入 14 よ 4 日除け ( すだれなど ) 雨ァ・その他の対策打ち水・建物外構での対策緑化保水化 0 OO ・クールスポットづくり日除け側面冷却ためもらわよ「めもらわためもらわ各対策の説明 ( 第 4 章参照 ) 断熱化 → o. 24 遮熱化 → 025 、 27 、 33 壁面緑化 → P26 日除け → o. 36 省エネルキー機器の導入 → o. 29 側面等の冷却 → o. 37 打ら水 → o. 39 建物外構での対策 ( 緑化・保水化など ) → o. 32 ~ 35 など 12",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 14,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p014-detached_house",
+          "printed_page": 12
+        }
+      ]
+    },
+    {
+      "scenario_id": "warehouse_factory",
+      "name_ja": "倉庫・工場",
+      "name_en": "warehouse/factory",
+      "characteristics": [
+        "large_asphalt_surface",
+        "building_hvac_waste_heat",
+        "metal_roof_heat_storage"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat",
+        "pedestrian_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "building_insulation",
+        "dry_mist",
+        "energy_efficiency",
+        "green_wall",
+        "ground_greening",
+        "heat_reflective_surface",
+        "roof_heat_shielding",
+        "shade",
+        "waste_heat_mitigation",
+        "water_retentive_surface"
+      ],
+      "characteristics_and_guidance_ja": "④ 倉庫・工場 【 特徴 】 金属製の屋根やアスファルトの路面が熱をためやすいほか 、 空調設備からの排熱がある 。 【 対策 】 ・屋根の遮熱化などにより建物への熱の侵入を防ぎ 、 排熱を減少 ( 熱をださない ) ・省エネルギ - 機器を導入することで 、 建物からの排熱を減少 ( 熱をださない ) ・緑化や遮熱化などにより建物表面やアスファルトの地表面への蓄熱を抑制 ( 熱をためない ) ・屋外作業場の - 部にク - ルスポットを設け 、 作業環境の快適性を向上 ( 熱をもらわない ) ・設備の対策・壁面等での対策省エネルギー機器の導入壁面緑化排熱の緩和 ( 水冷式など ) 第 - 部基礎編 ~ C00 00 ・屋根面での対策屋根の遮熱化ト 、 ・建物外構での対策遮熱化緑化保水化 000 OOO ・クールスポットづくり日除けドライ型 ( 微細 ) ミストよにを , もらわ 0 各対策の説明 ( 第 4 章参照 ) 省エネルキー機器の導入 → P29 排熱の緩和 → o. 29 断熱化 → o. 24 屋根の遮熱化 → o. 25 壁面緑化 → 0.26 日除け → 0.36 ドライ型 ( 微細 ) ミスト → 0.38 建物外構での対策 ( 緑化・遮熱化・保水化など ) → o. 32 ~ 34 など 13 ー",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 15,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p015-warehouse_factory",
+          "printed_page": 13
+        }
+      ]
+    },
+    {
+      "scenario_id": "urban_block",
+      "name_ja": "街区",
+      "name_en": "urban block",
+      "characteristics": [
+        "building_hvac_waste_heat"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat",
+        "pedestrian_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "building_configuration",
+        "building_insulation",
+        "green_roof",
+        "green_wall",
+        "ground_greening",
+        "heat_reflective_surface",
+        "retroreflective_surface",
+        "roof_heat_shielding",
+        "uchimizu",
+        "water_retentive_surface",
+        "water_surface"
+      ],
+      "characteristics_and_guidance_ja": "⑤ 街区 【 特徴 】 街区内の建物からの排熱があり 、 また 、 熱をためやすい 。 【 対策 】 ・建物の屋上などに緑化・遮熱化などを行うことで 、 建物表面への蓄熱を抑制 ( 熱をためない ) ・建物の断熱の強化や省エネルギ - 機器の導入により排熱を減少 ( 熱をださない ) ・街区 - 帯で緑化や保水化の整備を行うことで 、 快適性を向上 ( 熱をもらわない ) ・建物建設の際には 、 風通しを確保するため建物の形状や配置を工夫 ( 熱をためない ) ・まちなかで打ち水を行うなど 、 来街者を含めてまち全体で - 体となった暑さ対策を実施第 — 部基礎編一 ~ ・屋根面での対策・風通し対策建物形状 / 配置の工夫 300 屋上緑化屋上の遮熱化・建物外構での対策水面 / 水辺の確保ためもらわ第第を第朝第第ト・壁面等での対策壁面緑化再帰反射化・建物外構での対策緑化・保水化 ( 地表面 ) ・その他の対策打ち水遮熱化 30 各対策の説明 ( 第 4 章参照 ) 水面 / 水辺の確保 → o. 35 建物形状の工夫 → 0.31 屋上緑化 → P23 壁面緑化 → P26 打ら水 → o. 39 再帰反射化 → 028 建物外構での対策 ( 緑化・遮熱化・保水化なと ) → 032 ~ 34 なと 14",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 16,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p016-urban_block",
+          "printed_page": 14
+        }
+      ]
+    },
+    {
+      "scenario_id": "park",
+      "name_ja": "公園",
+      "name_en": "park",
+      "characteristics": [
+        "large_asphalt_surface",
+        "limited_shade"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "pedestrian_heat_exposure",
+        "solar_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "dry_mist",
+        "ground_greening",
+        "shade",
+        "side_surface_cooling",
+        "water_retentive_surface",
+        "water_surface"
+      ],
+      "characteristics_and_guidance_ja": "まちなかにおける対策 ① 公園 【 特徴 】 日射を遮るものが少なく 、 アスファルトやコンクリ - ト面が熱をためる 。 第 - 部基礎編 ~ 【 対策 】 ・緑地や水面を増やし 、 保水化することにより地表面への蓄熱を抑制 ( 熱をためない ) ・日除けや側面冷却技術などを活用したク - ルスポットをつくり 、 快適性を向上 ( 熱をもらわない ) ・クールスポットづくり日除け緑化 ( バーゴラ ) 0 ドライ型 ( 微細 ) ミスト側面冷却・敷地での対策水面 / 水辺の確保保水化 ( 地表面 ) OO 緑化 0 ① ※ ノ ← ゴラつる性の植物を絡ませる棚などです 。 各対策メニューについての詳糸田 ( 第 4 章参照 ) 日除け → 0.36 ドライ型 ( 微細 ) ミスト → o. 38 側面等の冷却 → o. 37 ! 水面 / 水辺の確保 → o. 35 緑化 → o. 32 保水化 → o. 34 なと 15 ー",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 17,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p017-park",
+          "printed_page": 15
+        }
+      ]
+    },
+    {
+      "scenario_id": "plaza",
+      "name_ja": "広場",
+      "name_en": "plaza",
+      "characteristics": [
+        "large_asphalt_surface",
+        "concrete_surface_heat_storage",
+        "building_hvac_waste_heat"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat",
+        "pedestrian_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "dry_mist",
+        "exhaust_location",
+        "ground_greening",
+        "shade",
+        "uchimizu",
+        "water_retentive_surface"
+      ],
+      "characteristics_and_guidance_ja": "② 広場 【 特徴 】 まちなかの広場は建物のコンクリートや地表面のアスファルトに囲まれており 、 熱をためやすいほか 、 周辺建物の空調設備からの排熱もある 。 第 — 部基礎編一 ~ 【 対策 】 ・緑化や保水化により地表面への蓄熱を抑制 ( 熱をためない ) よ・人が憩う場所に日除けやドライ型 ( 微細 ) ミストを設置することで快適性を向上 ( 熱をもらわない ) ・空調室外機を歩行空間から離れた場所に設置し 、 人に排熱が当たることを防止 ( 熱をもらわない ) ・まちなかで打ち水を行うなど 、 来街者を含めてまち全体で - 体となった暑さ対策を実施・設備の対策排熱位置の工夫 ( 空調室外機 ) もらわ・クールスポットづくり日除けドライ型 ( 微細 ) ミスト OO よもらわ・建物外構での対策緑化・保水化 ( 地表面 ) 打ち水各対策の説明 ( 第 4 章参照 ) 日除け → o. 36 ドライ型 ( 微細 ) ミスト → 0.38 排熱位置の工夫 → P29 打ら水 → o. 39 建物外構での対策 ( 緑化・保水化など ) → o. 32 ~ 34 などよ 16 ー",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 18,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p018-plaza",
+          "printed_page": 16
+        }
+      ]
+    },
+    {
+      "scenario_id": "road",
+      "name_ja": "道路",
+      "name_en": "road",
+      "characteristics": [
+        "large_asphalt_surface",
+        "vehicle_waste_heat"
+      ],
+      "problems": [
+        "surface_heat_storage",
+        "anthropogenic_waste_heat",
+        "pedestrian_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "dry_mist",
+        "ground_greening",
+        "heat_reflective_surface",
+        "shade",
+        "water_retentive_surface"
+      ],
+      "characteristics_and_guidance_ja": "③ 道路車道・歩道にアスファルト面が多く熱をためやすいほか 、 自動車等による排熱もある 。 【 特徴 】 【 対策 】 ・車道の遮熱化・保水化 、 歩道の緑化・保水化により地表面への蓄熱を抑制 ( 熱をためない ) ・街路樹により緑陰をつくり 、 バス停には日除けやドライ型 ( 微細 ) ミストを設置することで快適性を向上 ( 熱をもらわない ) ・クールスポットづくり日除けドライ型 ( 微細 ) ミスト第 - 部基礎編 ~ よためもらわ 6 らわ・道での対策保水化 O O ためもらわ緑化一ミ・車道での対策遮熱化保水化 0 にめもらわ各対策の説明 ( 第 4 章参照 ) 日除け → o. 36 ドライ型 ( 微細 ) ミスト → o. 38 緑化 → o. 32 保水化 → o. 34 遮熱化 → o. 33 などよ 17",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 19,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p019-road",
+          "printed_page": 17
+        }
+      ]
+    },
+    {
+      "scenario_id": "outdoor_event",
+      "name_ja": "屋外イベント会場",
+      "name_en": "outdoor event venue",
+      "characteristics": [
+        "prolonged_outdoor_crowding"
+      ],
+      "problems": [
+        "pedestrian_heat_exposure",
+        "solar_heat_exposure"
+      ],
+      "recommended_interventions": [
+        "dry_mist",
+        "ground_greening",
+        "heatstroke_prevention_support",
+        "shade",
+        "uchimizu"
+      ],
+      "characteristics_and_guidance_ja": "④ 屋外イベント会場炎天下にたくさんの人が集まり長時間の行列を作るなど 、 人が熱をもらいやすい 。 【 特徴 】 【 対策 】 ・日除けや 、 日射を遮る樹木を仮設することで快適性を向上 ( 熱をもらわない ) ・ドライ型 ( 微細 ) ミスト付送風機器などにより体感温度を下けることで快適性を向上 ( 熱をもらわない ) ・打ち水により地表面温度を下けることで快適性を向上 ( 熱をもらわない ) ・日傘の貸出しや十分な飲料水の提供などにより 、 熱中症を予防 ( 熱をもらわない ) ・クールスポットづくり日除け緑化 ( レンタル樹木 ) ドライ型 ( 微細 ) ミスト ( 微細ミストと送風 ) 第 — 部基礎編一 ~ よ OO をらわ・その他の対策熱中症対策 ( 日傘など ) 打ち水もらわためもらわ各対策の説明 ( 第 4 章参照 ) 日け → 036 緑化 ( レンタル樹木 ) → 0.32 熱中症対策 → o. 4 「熱中症に注意 ! ! 」打ち水 → 0.39 ドライ型 ( 微細 ) ミスト → 0.38 など 18 ー",
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 20,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p020-outdoor_event",
+          "printed_page": 18
+        }
+      ]
+    }
+  ]
+}

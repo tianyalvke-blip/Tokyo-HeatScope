@@ -1,0 +1,3 @@
+﻿# Policy knowledge ingestion pipeline deps (additive; not the app runtime)
+pdfplumber==0.11.7
+pdfminer.six==20250516

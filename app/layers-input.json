@@ -1,0 +1,119 @@
+{
+    "title": "Tokyo HeatScope",
+    "sidebar": { "title": "Tokyo HeatScope" },
+    "catalog": "data/catalog.json",
+    "mcp_url": "http://127.0.0.1:8765/mcp",
+    "titiler_url": "https://titiler.nrp-nautilus.io",
+
+    "view": {
+        "center": [139.741, 35.674],
+        "zoom": 10.6,
+        "pitch": 0,
+        "bearing": 0,
+        "fit_bounds": [[139.565, 35.531], [139.918, 35.817]]
+    },
+
+    "default_basemap": "tokyo",
+    "basemap_flavor": "light",
+    "custom_basemap": {
+        "pmtiles": "basemap/tokyo-osm-20260824-z15.pmtiles",
+        "label": "Tokyo OSM"
+    },
+
+    "llm": {
+        "user_provided": true,
+        "default_endpoint": "https://api.deepseek.com",
+        "models": [
+            { "value": "deepseek-v4-flash", "label": "DeepSeek v4 flash" }
+        ]
+    },
+
+    "welcome": {
+        "message": "Talk to the Map. Understand the Heat.\n\nExplore daytime and nighttime land surface temperature (LST) across Tokyo 23 Wards on a 200 m grid. LST is land surface temperature \u2014 not air temperature. Try:",
+        "examples": [
+            "Where are Tokyo\u2019s heat hotspots?",
+            "Compare Ikebukuro and Marunouchi",
+            "Why is Sakuradai so hot?",
+            "What if Ikebukuro had more green space?",
+            "What should Bancho prioritize?"
+        ]
+    },
+
+    "geocoder": { "enabled": true },
+
+    "collections": [
+        {
+            "collection_id": "tokyo-lst",
+            "collection_url": "data/tokyo-lst/collection.json",
+            "group": "LST Grids",
+            "display_name": "Tokyo LST",
+            "preload": true,
+            "assets": [
+                {
+                    "id": "grid-geojson",
+                    "alias": "day-lst",
+                    "display_name": "Daytime LST (\u00b0C)",
+                    "visible": true,
+                    "legend_type": "continuous",
+                    "legend_label": "\u00b0C",
+                    "legend_range": [25, 40],
+                    "legend_gradient": ["#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"],
+                    "default_style": {
+                        "fill-color": ["interpolate", ["linear"], ["get", "day_lst"],
+                            25, "#313695", 27, "#4575b4", 29, "#74add1", 31, "#abd9e9",
+                            33, "#e0f3f8", 35, "#fee090", 36, "#fdae61", 37, "#f46d43",
+                            38, "#d73027", 40, "#a50026"],
+                        "fill-opacity": 0.75
+                    },
+                    "outline_style": {
+                        "line-color": "rgba(0,0,0,0.28)",
+                        "line-width": 0.4
+                    },
+                    "tooltip_fields": ["grid_id", "day_lst", "night_lst", "day_night_gap", "ndvi", "water_ratio", "avg_height", "bldg_coverage_ratio", "road_length", "dist_to_coast", "elevation_mean", "svf_mean", "pop_2020_total"]
+                },
+                {
+                    "id": "grid-geojson",
+                    "alias": "night-lst",
+                    "display_name": "Nighttime LST (\u00b0C)",
+                    "visible": false,
+                    "legend_type": "continuous",
+                    "legend_label": "\u00b0C",
+                    "legend_range": [20, 25],
+                    "legend_gradient": ["#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#fee090"],
+                    "default_style": {
+                        "fill-color": ["interpolate", ["linear"], ["get", "night_lst"],
+                            20, "#313695", 21, "#4575b4", 22, "#74add1", 23, "#abd9e9",
+                            24, "#e0f3f8", 25, "#fee090"],
+                        "fill-opacity": 0.75
+                    },
+                    "outline_style": {
+                        "line-color": "rgba(0,0,0,0.28)",
+                        "line-width": 0.4
+                    },
+                    "tooltip_fields": ["grid_id", "day_lst", "night_lst", "day_night_gap", "ndvi", "water_ratio", "avg_height", "bldg_coverage_ratio", "road_length", "dist_to_coast", "elevation_mean", "svf_mean", "pop_2020_total"]
+                },
+                {
+                    "id": "grid-geojson",
+                    "alias": "pop-2020",
+                    "display_name": "Population 2020 (persons/km\u00b2)",
+                    "visible": false,
+                    "legend_type": "continuous",
+                    "legend_label": "persons/km\u00b2",
+                    "legend_range": [0, 108000],
+                    "legend_gradient": ["#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#b10026"],
+                    "default_style": {
+                        "fill-color": ["interpolate", ["linear"], ["get", "pop_2020_density_km2"],
+                            0, "#ffffcc", 10000, "#fed976", 25000, "#feb24c",
+                            50000, "#fd8d3c", 75000, "#fc4e2a", 108000, "#b10026"],
+                        "fill-opacity": 0.75
+                    },
+                    "outline_style": {
+                        "line-color": "rgba(0,0,0,0.28)",
+                        "line-width": 0.4
+                    },
+                    "tooltip_fields": ["grid_id", "pop_2020_total", "pop_2020_density_km2", "pop_65_over", "day_lst"]
+                }
+            ]
+        }
+    ]
+}

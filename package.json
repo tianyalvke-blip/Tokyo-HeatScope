@@ -1,0 +1,13 @@
+{
+  "name": "glen-lst-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GLEN LST Agent - Tokyo Urban Heat GeoAgent (tooling only; frontend is dependency-free vanilla JS)",
+  "scripts": {
+    "generate:basemap": "node scripts/generate_basemap_style.mjs"
+  },
+  "devDependencies": {
+    "@protomaps/basemaps": "5.7.2"
+  }
+}

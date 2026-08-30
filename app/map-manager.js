@@ -1,0 +1,1660 @@
+/**
+ * MapManager - Map initialization and layer control API
+ *
+ * Owns the MapLibre map instance and provides a clean API for:
+ * - Initializing layers from DatasetCatalog configs
+ * - Show/hide layers
+ * - Apply MapLibre filter expressions to vector layers
+ * - Apply paint/style properties
+ * - Query visible features
+ * - Generate layer control UI
+ *
+ * No knowledge of LLMs, tools, or chat — pure map operations.
+ */
+
+import { extractHashFromUrl, buildFillColorExpression, buildFlatFillColorExpression, rewriteValueColumn } from './hex-layer-helpers.js';
+import { deriveContinuousLegend } from './legend-helpers.js';
+import { layers, namedFlavor } from './protomaps-basemaps.mjs';
+
+const BASEMAPS = {
+    natgeo: {
+        source: {
+            type: 'raster',
+            tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256,
+            maxzoom: 16,
+            attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA'
+        },
+        terrain: true
+    },
+    satellite: {
+        source: {
+            type: 'raster',
+            tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        },
+        terrain: true
+    },
+    plain: {
+        source: {
+            type: 'raster',
+            tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+        },
+        terrain: false
+    }
+};
+
+/**
+ * Build the vector basemap style for a Protomaps-style PMTiles archive using
+ * the official @protomaps/basemaps theme (vendored at ./protomaps-basemaps.mjs).
+ *
+ * This is the canonical per-zoom styling for the archive — correct water/ocean
+ * polygons, land-use fills, road casings, and per-zoom breakpoints — which the
+ * earlier hand-rolled style got wrong at several zoom levels (e.g. generalized
+ * ocean polygons covering land). Symbol layers are dropped so the map needs no
+ * sprite assets; the LST grid is the star of this app.
+ *
+ * @param {string} pmtilesUrl - path served over the pmtiles:// protocol
+ * @param {string} [flavor] - protomaps flavor: 'light' | 'grayscale' | 'dark' | 'white' | 'black'
+ * @returns {{source: Object, layers: Array}}
+ */
+function protomapsBasemapStyle(pmtilesUrl, flavor = 'light') {
+    const source = {
+        type: 'vector',
+        url: `pmtiles://${pmtilesUrl}`,
+        maxzoom: 15,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    };
+    const bmLayers = layers('glen-basemap', namedFlavor(flavor), { lang: 'en' })
+        .filter(l => l.type !== 'background' && l.type !== 'symbol');
+    return { source, layers: bmLayers };
+}
+
+export class MapManager {
+    /**
+     * @param {string} containerId - DOM element ID for the map
+     * @param {Object} options - { center, zoom, maptilerKey, pitch, maxPitch }
+     */
+    constructor(containerId, options = {}) {
+        /** @type {Map<string, LayerState>} */
+        this.layers = new Map();
+
+        // Raster legend state
+        this._legendEl = null;
+        this._legendContent = null;
+        this._legendItems = new Map();   // layerId → DOM element
+        this._colormapCache = new Map(); // colormap name → CSS gradient string
+        this.titilerUrl = options.titilerUrl || 'https://titiler.nrp-nautilus.io';
+        this._maptilerKey = options.maptilerKey || '';
+        this._globeEnabled = options.globe ?? false;
+
+        // Build instance-level copy so customization never mutates module-level BASEMAPS
+        this._basemaps = structuredClone(BASEMAPS);
+        const customBasemap = options.customBasemap;
+        this._customBasemapLabel = customBasemap?.label || null;
+        this._basemapVectorLabel = customBasemap?.label || 'Tokyo';
+        if (customBasemap?.url) {
+            this._basemaps.natgeo.source.tiles = [customBasemap.url];
+            this._basemaps.natgeo.source.attribution = '';
+            this._basemaps.natgeo.terrain = false;
+        }
+
+        // ── PMTiles vector basemap (optional) ──────────────────────────────
+        // Adds the official Protomaps-themed vector basemap (e.g. the Tokyo
+        // OSM archive) alongside the three raster presets. Toggled via
+        // setBasemap(). Flavor is configurable (light default).
+        this._basemapVectorKey = null;
+        this._basemapVectorLayers = [];
+        this._basemapVectorSource = null;
+        if (customBasemap?.pmtiles) {
+            this._basemapVectorKey = 'tokyo';
+            const bm = protomapsBasemapStyle(customBasemap.pmtiles, options.basemapFlavor || 'light');
+            this._basemapVectorSource = bm.source;
+            this._basemapVectorLayers = bm.layers;
+        }
+
+        const defaultBasemap = (options.defaultBasemap && this._basemaps[options.defaultBasemap])
+            ? options.defaultBasemap
+            : (this._basemapVectorKey && options.defaultBasemap === this._basemapVectorKey)
+                ? this._basemapVectorKey
+                : 'natgeo';
+
+        this._currentBasemap = defaultBasemap;
+
+        // Register PMTiles protocol
+        const protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol('pmtiles', protocol.tile);
+
+        // Create map with all three basemap sources; natgeo visible by default
+        this.map = new maplibregl.Map({
+            container: containerId,
+            style: {
+                version: 8,
+                glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+                sources: {
+                    natgeo:    this._basemaps.natgeo.source,
+                    satellite: this._basemaps.satellite.source,
+                    plain:     this._basemaps.plain.source,
+                    ...(this._basemapVectorKey ? { 'glen-basemap': this._basemapVectorSource } : {}),
+                },
+                layers: [
+                    { id: 'natgeo-base',    type: 'raster', source: 'natgeo',    layout: { visibility: defaultBasemap === 'natgeo' ? 'visible' : 'none' } },
+                    { id: 'satellite-base', type: 'raster', source: 'satellite', layout: { visibility: defaultBasemap === 'satellite' ? 'visible' : 'none' } },
+                    { id: 'plain-base',     type: 'raster', source: 'plain',     layout: { visibility: defaultBasemap === 'plain' ? 'visible' : 'none' } },
+                    ...(this._basemapVectorKey
+                        ? this._basemapVectorLayers.map(l => ({
+                              ...l, layout: { ...(l.layout || {}), visibility: defaultBasemap === 'tokyo' ? 'visible' : 'none' },
+                          }))
+                        : []),
+                ],
+            },
+            center: options.center || [-119.4, 36.8],
+            zoom: options.zoom || 6,
+            pitch: options.pitch ?? 0,
+            bearing: options.bearing ?? 0,
+            maxPitch: options.maxPitch ?? 75,
+            renderWorldCopies: false,
+            attributionControl: false,
+        });
+
+        this.map.addControl(new maplibregl.AttributionControl({
+            compact: false,
+            customAttribution: '&copy; OpenStreetMap contributors · Esri (NatGeo/Satellite) · Protomaps',
+        }), 'top-left');
+        this.map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
+
+        // Basemap as a toggleable "layer" so it appears like the data layers
+        // (a checkbox in the overlays list) and can be switched on/off.
+        if (this._basemapVectorKey) {
+            this.layers.set('basemap', {
+                layerId: 'basemap', mapLayerId: null, outlineLayerId: null, sourceId: null,
+                datasetId: null, group: null, groupCollapsed: false,
+                displayName: this._basemapVectorLabel || 'Basemap', type: 'basemap',
+                sourceLayer: null, visible: true, filter: null, defaultFilter: null,
+                columns: [], defaultPaint: {}, tooltipFields: null, defaultTooltipFields: null,
+                colormap: null, rescale: null, legendLabel: null, legendType: null,
+                legendClasses: null, legendRange: null, legendGradient: null,
+            });
+        }
+
+        // Promise that resolves when the map style is loaded (and terrain is set up)
+        this.ready = new Promise(resolve => {
+            this.map.on('load', async () => {
+                if (this._maptilerKey) {
+                    try {
+                        this.map.addSource('terrain-dem', {
+                            type: 'raster-dem',
+                            url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${this._maptilerKey}`,
+                            tileSize: 256
+                        });
+                        this.map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+                    } catch (e) {
+                        console.warn('[MapManager] terrain setup failed:', e);
+                    }
+                }
+                if (defaultBasemap !== 'natgeo') {
+                    this.setBasemap(defaultBasemap);
+                }
+                if (this._globeEnabled) {
+                    this.map.setProjection({ type: 'globe' });
+                    const cb = document.getElementById('globe-checkbox');
+                    if (cb) cb.checked = true;
+                }
+                resolve();
+            });
+        });
+
+        // Shared hover tooltip element
+        this._tooltip = document.createElement('div');
+        this._tooltip.className = 'map-tooltip';
+        document.body.appendChild(this._tooltip);
+    }
+
+    /**
+     * Register and add layers to the map from catalog configs.
+     * @param {Array} layerConfigs - From DatasetCatalog.getMapLayerConfigs()
+     */
+    addLayersFromCatalog(layerConfigs) {
+        for (const config of layerConfigs) {
+            this.registerLayer(config);
+        }
+        console.log(`[Map] Registered ${this.layers.size} layers`);
+    }
+
+    /**
+     * Register a single layer on the map.
+     */
+    registerLayer(config) {
+        const { layerId, datasetId, group, groupCollapsed, displayName, type, paint, outlinePaint, renderType, columns, tooltipFields, defaultVisible, defaultFilter, colormap, rescale, legendLabel, legendType, legendClasses, legendRange, legendGradient } = config;
+
+        // ── Animated layer: delegate to TrajectoryAnimation ──
+        if (config.animation && config.animation.type === 'trajectory') {
+            this._registerTrajectoryLayer(config);
+            return;
+        }
+
+        // ── Versioned layer: register N underlying MapLibre layers, one logical entry ──
+        if (config.versions && config.versions.length > 0) {
+            const versionStates = config.versions.map((v, i) => {
+                const isActive = (i === config.defaultVersionIndex);
+                const vis = (defaultVisible && isActive) ? 'visible' : 'none';
+                const vMapLayerId = `layer-${layerId.replace(/\//g, '-')}--v-${i}`;
+
+                // Add source
+                if (!this.map.getSource(v.sourceId)) {
+                    this.map.addSource(v.sourceId, v.source);
+                }
+
+                // Build MapLibre layer
+                const layerDef = {
+                    id: vMapLayerId,
+                    source: v.sourceId,
+                    layout: { visibility: vis },
+                };
+
+                let vOutlineLayerId = null;
+                if (v.type === 'vector' && renderType === 'line') {
+                    layerDef.type = 'line';
+                    if (v.sourceLayer) layerDef['source-layer'] = v.sourceLayer;
+                    layerDef.paint = paint || { 'line-color': '#2E7D32', 'line-width': 1.5 };
+                } else if (v.type === 'vector' && renderType === 'circle') {
+                    layerDef.type = 'circle';
+                    if (v.sourceLayer) layerDef['source-layer'] = v.sourceLayer;
+                    layerDef.paint = paint || { 'circle-color': '#2E7D32', 'circle-radius': 6, 'circle-opacity': 0.8 };
+                } else if (v.type === 'vector') {
+                    layerDef.type = 'fill';
+                    if (v.sourceLayer) layerDef['source-layer'] = v.sourceLayer;
+                    layerDef.paint = paint || { 'fill-color': '#2E7D32', 'fill-opacity': 0.5 };
+                } else if (v.type === 'raster') {
+                    layerDef.type = 'raster';
+                    layerDef.paint = paint || { 'raster-opacity': 0.7 };
+                }
+
+                this.map.addLayer(layerDef);
+
+                // Outline for vector fills
+                if (v.type === 'vector' && renderType !== 'line' && renderType !== 'circle') {
+                    vOutlineLayerId = `${vMapLayerId}-outline`;
+                    const outlineDef = {
+                        id: vOutlineLayerId,
+                        type: 'line',
+                        source: v.sourceId,
+                        layout: { visibility: vis },
+                        paint: outlinePaint || { 'line-color': 'rgba(0,0,0,0.4)', 'line-width': 0.5 },
+                    };
+                    if (v.sourceLayer) outlineDef['source-layer'] = v.sourceLayer;
+                    this.map.addLayer(outlineDef);
+                }
+
+                // Default filter
+                if (defaultFilter) {
+                    try {
+                        this.map.setFilter(vMapLayerId, defaultFilter);
+                        if (vOutlineLayerId) this.map.setFilter(vOutlineLayerId, defaultFilter);
+                    } catch (err) {
+                        console.error(`[Map] Failed to apply default filter to ${layerId} v${i}:`, err);
+                    }
+                }
+
+                // Wire tooltip on every vector version. The handler reads
+                // `tooltipFields` from the logical layer's state record each
+                // event, so set_tooltip can update fields at runtime.
+                if (v.type === 'vector') {
+                    this._wireTooltip(vMapLayerId, layerId);
+                }
+
+                return {
+                    label: v.label,
+                    mapLayerId: vMapLayerId,
+                    outlineLayerId: vOutlineLayerId,
+                    sourceId: v.sourceId,
+                    sourceLayer: v.sourceLayer || null,
+                };
+            });
+
+            this.layers.set(layerId, {
+                layerId,
+                mapLayerId: versionStates[config.defaultVersionIndex].mapLayerId,
+                outlineLayerId: versionStates[config.defaultVersionIndex].outlineLayerId,
+                sourceId: versionStates[config.defaultVersionIndex].sourceId,
+                datasetId,
+                group: group || null,
+                groupCollapsed: groupCollapsed || false,
+                displayName,
+                type,
+                sourceLayer: versionStates[config.defaultVersionIndex].sourceLayer,
+                visible: defaultVisible || false,
+                filter: defaultFilter || null,
+                defaultFilter: defaultFilter || null,
+                columns: columns || [],
+                defaultPaint: { ...(paint || {}) },
+                tooltipFields: tooltipFields ? [...tooltipFields] : null,
+                defaultTooltipFields: tooltipFields ? [...tooltipFields] : null,
+                colormap: colormap || null,
+                rescale: rescale || null,
+                legendLabel: legendLabel || null,
+                legendType: legendType || null,
+                legendClasses: legendClasses || null,
+                legendRange: legendRange || null,
+                legendGradient: legendGradient || null,
+                // Version tracking
+                versions: versionStates,
+                activeVersionIndex: config.defaultVersionIndex,
+            });
+            this._showLegendIfVisible(layerId);
+            return;
+        }
+
+        // ── Standard (non-versioned) layer ──
+        const { source, sourceLayer } = config;
+        // Use pre-computed sourceId (shared between alias layers) or derive from layerId
+        const sourceId = config.sourceId || `src-${layerId.replace(/\//g, '-')}`;
+        const mapLayerId = `layer-${layerId.replace(/\//g, '-')}`;
+
+        // Add source if not exists
+        if (!this.map.getSource(sourceId)) {
+            this.map.addSource(sourceId, source);
+        }
+
+        // Build layer definition
+        const layerDef = {
+            id: mapLayerId,
+            source: sourceId,
+            layout: { visibility: defaultVisible ? 'visible' : 'none' },
+        };
+
+        let outlineLayerId = null;
+        if (type === 'vector' && renderType === 'line') {
+            layerDef.type = 'line';
+            if (sourceLayer) layerDef['source-layer'] = sourceLayer;
+            layerDef.paint = paint || { 'line-color': '#2E7D32', 'line-width': 1.5 };
+        } else if (type === 'vector' && renderType === 'circle') {
+            layerDef.type = 'circle';
+            if (sourceLayer) layerDef['source-layer'] = sourceLayer;
+            layerDef.paint = paint || { 'circle-color': '#2E7D32', 'circle-radius': 6, 'circle-opacity': 0.8 };
+        } else if (type === 'vector') {
+            layerDef.type = 'fill';
+            if (sourceLayer) layerDef['source-layer'] = sourceLayer;
+            layerDef.paint = paint || { 'fill-color': '#2E7D32', 'fill-opacity': 0.5 };
+        } else if (type === 'raster') {
+            layerDef.type = 'raster';
+            layerDef.paint = paint || { 'raster-opacity': 0.7 };
+        }
+
+        this.map.addLayer(layerDef);
+
+        // Add outline layer for vector fills (not for line or circle layers)
+        if (type === 'vector' && renderType !== 'line' && renderType !== 'circle') {
+            outlineLayerId = `${mapLayerId}-outline`;
+            const outlineDef = {
+                id: outlineLayerId,
+                type: 'line',
+                source: sourceId,
+                layout: { visibility: defaultVisible ? 'visible' : 'none' },
+                paint: outlinePaint || {
+                    'line-color': 'rgba(0,0,0,0.4)',
+                    'line-width': 0.5,
+                },
+            };
+            if (sourceLayer) outlineDef['source-layer'] = sourceLayer;
+            this.map.addLayer(outlineDef);
+        }
+
+        // Apply default filter if declared
+        if (defaultFilter) {
+            try {
+                this.map.setFilter(mapLayerId, defaultFilter);
+                if (outlineLayerId) this.map.setFilter(outlineLayerId, defaultFilter);
+            } catch (err) {
+                console.error(`[Map] Failed to apply default filter to ${layerId}:`, err);
+            }
+        }
+
+        // Store state
+        this.layers.set(layerId, {
+            layerId,
+            mapLayerId,
+            outlineLayerId,
+            sourceId,
+            datasetId,
+            group: group || null,
+            groupCollapsed: groupCollapsed || false,
+            displayName,
+            type,
+            sourceLayer: sourceLayer || null,
+            visible: defaultVisible || false,
+            filter: defaultFilter || null,
+            defaultFilter: defaultFilter || null,
+            columns: columns || [],
+            defaultPaint: { ...(paint || {}) },
+            tooltipFields: tooltipFields ? [...tooltipFields] : null,
+            defaultTooltipFields: tooltipFields ? [...tooltipFields] : null,
+            colormap: colormap || null,
+            rescale: rescale || null,
+            legendLabel: legendLabel || null,
+            legendType: legendType || null,
+            legendClasses: legendClasses || null,
+            legendRange: legendRange || null,
+            legendGradient: legendGradient || null,
+        });
+
+        // Wire tooltip handler on every vector layer (even those without
+        // declared fields) so set_tooltip can attach fields at runtime. The
+        // handler bails when the state record's tooltipFields is null/empty.
+        if (type === 'vector') {
+            this._wireTooltip(mapLayerId, layerId);
+        }
+
+        this._showLegendIfVisible(layerId);
+    }
+
+    /**
+     * Register an animated trajectory layer. Creates a TrajectoryAnimation
+     * instance that owns its own sources, layers, and RAF loop; stores a
+     * layer-state record so it shows up in the layer panel and works with
+     * showLayer / hideLayer / setFilter.
+     */
+    async _registerTrajectoryLayer(config) {
+        const { layerId, datasetId, group, groupCollapsed, displayName, animation, defaultVisible, defaultFilter, tracksUrl, paint } = config;
+
+        // Store the state synchronously so generateControls can find it even
+        // while the module + GeoJSON are still loading.
+        const state = {
+            layerId,
+            mapLayerId: null,
+            outlineLayerId: null,
+            sourceId: null,
+            datasetId,
+            group: group || null,
+            groupCollapsed: groupCollapsed || false,
+            displayName,
+            type: 'animation',
+            sourceLayer: null,
+            visible: defaultVisible || false,
+            filter: defaultFilter || null,
+            defaultFilter: defaultFilter || null,
+            columns: [],
+            defaultPaint: { ...(paint || {}) },
+            tooltipFields: null,
+            defaultTooltipFields: null,
+            animation: null,   // filled in below
+        };
+        this.layers.set(layerId, state);
+
+        try {
+            const { TrajectoryAnimation } = await import('./animation-manager.js');
+            const anim = new TrajectoryAnimation(this.map, {
+                layerId,
+                displayName,
+                tracksUrl,
+                staticUrl: animation.static_positions_url || null,
+                config: animation,
+                paint,
+            });
+            await anim.ready;
+            state.animation = anim;
+            // Apply deferred visibility/filter requested before init finished
+            anim.setVisible(state.visible);
+            if (state.filter) anim.setFilter(state.filter);
+        } catch (err) {
+            console.error(`[Map] Failed to init trajectory animation for ${layerId}:`, err);
+        }
+    }
+
+    // ---- Layer Visibility ----
+
+    /**
+     * Show a layer.
+     * @param {string} layerId 
+     * @returns {Object} Result
+     */
+    showLayer(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}. Available: ${this.getLayerIds().join(', ')}` };
+
+        state.visible = true;
+        if (state.type === 'basemap') {
+            this.setBasemap(this._currentBasemap || this._basemapVectorKey);
+            return { success: true, layer: layerId, displayName: state.displayName, visible: true };
+        }
+        if (state.type === 'animation') {
+            if (state.animation) state.animation.setVisible(true);
+            return { success: true, layer: layerId, displayName: state.displayName, visible: true };
+        }
+        this.map.setLayoutProperty(state.mapLayerId, 'visibility', 'visible');
+        if (state.outlineLayerId) this.map.setLayoutProperty(state.outlineLayerId, 'visibility', 'visible');
+        if (this._hasLegend(state)) this._showLegend(layerId);
+        return { success: true, layer: layerId, displayName: state.displayName, visible: true };
+    }
+
+    /**
+     * Hide a layer.
+     * @param {string} layerId 
+     * @returns {Object} Result
+     */
+    hideLayer(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}. Available: ${this.getLayerIds().join(', ')}` };
+
+        state.visible = false;
+        if (state.type === 'basemap') {
+            // Hide every basemap layer (raster presets + PMTiles vector basemap).
+            Object.keys(this._basemaps).forEach(key => {
+                if (this.map.getLayer(key + '-base')) {
+                    this.map.setLayoutProperty(key + '-base', 'visibility', 'none');
+                }
+            });
+            for (const l of this._basemapVectorLayers) {
+                if (this.map.getLayer(l.id)) this.map.setLayoutProperty(l.id, 'visibility', 'none');
+            }
+            return { success: true, layer: layerId, displayName: state.displayName, visible: false };
+        }
+        if (state.type === 'animation') {
+            if (state.animation) state.animation.setVisible(false);
+            return { success: true, layer: layerId, displayName: state.displayName, visible: false };
+        }
+        this.map.setLayoutProperty(state.mapLayerId, 'visibility', 'none');
+        if (state.outlineLayerId) this.map.setLayoutProperty(state.outlineLayerId, 'visibility', 'none');
+        if (this._hasLegend(state)) this._hideLegend(layerId);
+        return { success: true, layer: layerId, displayName: state.displayName, visible: false };
+    }
+
+    // ---- Hex Tile Layers (dynamic MVT from MCP register_hex_tiles) ----
+
+    /**
+     * Add a dynamic H3 hex MVT source + fill layer from an MCP tile URL template.
+     *
+     * See docs/superpowers/specs/2026-04-16-add-hex-tile-layer-design.md for the
+     * full contract. Idempotent by hash: re-adding a URL whose hash is already
+     * registered returns {already_exists: true} without mutating the map.
+     *
+     * @param {Object} opts
+     * @param {string} opts.tileUrl - from register_hex_tiles.tile_url_template
+     * @param {string} opts.valueColumn - which column to color by
+     * @param {{by_res: Object<string,{min:number,max:number}>}} opts.valueStats -
+     *   from register_hex_tiles.value_stats[valueColumn]
+     * @param {[number, number, number, number]} opts.bounds - [w,s,e,n]
+     * @param {string} opts.palette - one of PALETTES keys
+     * @param {number} opts.opacity - 0..1
+     * @param {string} opts.displayName
+     * @param {boolean} opts.fitBounds - call map.fitBounds after adding
+     * @param {string} [opts.layerName] - MVT source-layer name from register_hex_tiles.
+     *   Defaults to 'layer' (current mcp-data-server default).
+     * @param {number} [opts.resolution] - H3 resolution to render. Must be a key in
+     *   valueStats.by_res. Defaults to the finest (highest) resolution present.
+     *   Currently informational only — the server pyramid chooses one resolution
+     *   per tile from zoom, so we don't apply a client-side `res` filter. Kept on
+     *   the surface for forward compatibility with a future tile-URL `?res=N`
+     *   override.
+     * @returns {{success: boolean, layer_id?: string, error?: string}}
+     */
+    addHexTileLayer(opts) {
+        const { tileUrl, valueColumn, valueStats, bounds, palette, opacity, displayName, fitBounds, layerName, resolution, format, geojsonUrl } = opts;
+        const isGeoJson = format === 'geojson';
+        const sourceLayer = isGeoJson ? null : (layerName || 'layer');
+
+        // The hash always comes from tile_url_template (returned by
+        // register_hex_tiles for both formats), never from geojson_url whose
+        // shape (.../hex/<hash>/data.geojson) extractHashFromUrl doesn't parse.
+        const hash = extractHashFromUrl(tileUrl);
+        if (!hash) {
+            return { success: false, error: `Invalid tile_url — expected template from register_hex_tiles ending in /tiles/hex/<hash>/{z}/{x}/{y}.pbf` };
+        }
+        if (isGeoJson && !geojsonUrl) {
+            return { success: false, error: 'format "geojson" requires geojson_url from register_hex_tiles' };
+        }
+        const layerId = `hex-${hash}`;
+
+        // Idempotency: same URL → same layer → no re-add
+        if (this.layers.has(layerId)) {
+            const state = this.layers.get(layerId);
+            return {
+                success: true,
+                layer_id: layerId,
+                display_name: state.displayName,
+                value_column: valueColumn,
+                bounds,
+                already_exists: true,
+                message: 'Layer already registered. Use remove_hex_tile_layer first to re-add with different styling.',
+            };
+        }
+
+        const availableRes = Object.keys(valueStats?.by_res || {}).map(Number).sort((a, b) => a - b);
+        if (availableRes.length === 0) {
+            return { success: false, error: 'value_stats.by_res must contain at least one resolution' };
+        }
+        if (resolution != null && !availableRes.includes(Number(resolution))) {
+            return { success: false, error: `resolution ${resolution} not in value_stats.by_res — available: ${availableRes.join(', ')}` };
+        }
+
+        let fillColor;
+        try {
+            if (isGeoJson) {
+                // Single-resolution: GeoJSON features carry no `res`, so the
+                // per-res `match` would render everything transparent. Paint a
+                // flat ramp over the finest (largest) resolution's stats.
+                const finestRes = availableRes[availableRes.length - 1];
+                fillColor = buildFlatFillColorExpression(valueColumn, valueStats.by_res[finestRes], palette);
+            } else {
+                fillColor = buildFillColorExpression(valueColumn, valueStats, palette);
+            }
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+
+        const paint = {
+            'fill-color': fillColor,
+            'fill-opacity': opacity,
+            'fill-outline-color': 'rgba(0,0,0,0.15)',
+        };
+
+        // No filter on `res`: the server pyramid serves one resolution per
+        // tile keyed off zoom (target_res = clamp(z + zoom_offset, min_res,
+        // finest_res)). A client-side `res == N` filter would discard every
+        // tile that doesn't already happen to carry resolution N — empty
+        // render at most zoom levels. Let MapLibre render whatever the tile
+        // contains; buildFillColorExpression's per-res `match` picks the
+        // right branch for each tile's resolution.
+        if (isGeoJson) {
+            this.map.addSource(layerId, { type: 'geojson', data: geojsonUrl });
+        } else {
+            this.map.addSource(layerId, { type: 'vector', tiles: [tileUrl], minzoom: 0, maxzoom: 14 });
+        }
+        this.map.addLayer({
+            id: layerId,
+            type: 'fill',
+            source: layerId,
+            // GeoJSON sources have no source-layer; omit it for that branch.
+            ...(isGeoJson ? {} : { 'source-layer': sourceLayer }),
+            layout: { visibility: 'visible' },
+            paint,
+        });
+
+        this.layers.set(layerId, {
+            layerId,
+            mapLayerId: layerId,
+            outlineLayerId: null,
+            sourceId: layerId,
+            datasetId: null,
+            group: null,
+            groupCollapsed: false,
+            displayName,
+            type: 'vector',
+            sourceLayer,
+            valueColumn,
+            columns: [],
+            visible: true,
+            filter: null,
+            defaultFilter: null,
+            defaultPaint: { ...paint },
+            tooltipFields: null,
+            defaultTooltipFields: null,
+            colormap: null,
+            rescale: null,
+            legendLabel: null,
+            legendType: null,
+            legendClasses: null,
+        });
+
+        this._wireTooltip(layerId, layerId);
+
+        if (fitBounds && Array.isArray(bounds) && bounds.length === 4) {
+            const [w, s, e, n] = bounds;
+            this.map.fitBounds([[w, s], [e, n]], { padding: 40, duration: 800 });
+        }
+
+        return {
+            success: true,
+            layer_id: layerId,
+            display_name: displayName,
+            value_column: valueColumn,
+            bounds,
+            already_exists: false,
+        };
+    }
+
+    /**
+     * Remove a dynamic hex tile layer previously added via addHexTileLayer.
+     *
+     * Refuses any layer_id not starting with `hex-` so curated layers can't
+     * be accidentally destroyed.
+     *
+     * @param {string} layerId - e.g. "hex-abc123"
+     * @returns {{success: boolean, layer_id?: string, error?: string}}
+     */
+    removeHexTileLayer(layerId) {
+        if (typeof layerId !== 'string' || !layerId.startsWith('hex-')) {
+            return { success: false, error: `layer_id '${layerId}' is not a hex layer (must start with 'hex-')` };
+        }
+        if (!this.layers.has(layerId)) {
+            const hexLayers = [...this.layers.keys()].filter(id => id.startsWith('hex-'));
+            return { success: false, error: `Unknown hex layer '${layerId}'. Registered: [${hexLayers.join(', ')}]` };
+        }
+        this.map.removeLayer(layerId);
+        this.map.removeSource(layerId);
+        this.layers.delete(layerId);
+        return { success: true, layer_id: layerId };
+    }
+
+    /**
+     * Remove a dynamically-created layer (e.g. an analysis result layer).
+     * Removes the layer (and its outline), its source if no other registered
+     * layer still uses it, its legend entry, and the registry state.
+     * @param {string} layerId - logical layer id
+     * @returns {Object} Result
+     */
+    removeLayer(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+
+        // Remove the MapLibre sub-layers (fill + outline, or versions).
+        for (const sub of this._mapSublayersFor(layerId)) {
+            if (this.map.getLayer(sub)) this.map.removeLayer(sub);
+        }
+
+        // Remove the source only if no other registered layer shares it.
+        if (state.sourceId && this.map.getSource(state.sourceId)) {
+            const stillUsed = [...this.layers.entries()]
+                .some(([id, s]) => id !== layerId && s.sourceId === state.sourceId);
+            if (!stillUsed) this.map.removeSource(state.sourceId);
+        }
+
+        this.layers.delete(layerId);
+        this._hideLegend(layerId);
+        return { success: true, layer: layerId };
+    }
+
+    // ---- Filtering (vector layers only) ----
+
+    /**
+     * Apply a MapLibre filter expression to a vector layer.
+     * @param {string} layerId 
+     * @param {Array|null} filter - MapLibre filter expression, or null to clear
+     * @returns {Object} Result with feature count
+     */
+    setFilter(layerId, filter) {
+        // An empty array is never a meaningful predicate. MapLibre applies it as a
+        // silent no-op (clearing any filter), so a model that emits `[]` — e.g. when
+        // grammar-constrained decoding collapses the filter argument — sees
+        // success + no visible change and retries forever (#243). Reject it
+        // explicitly; clear_filter / reset_filter are the ways to show all features.
+        if (Array.isArray(filter) && filter.length === 0) {
+            return {
+                success: false,
+                error: 'filter was empty ([]) — no predicate applied. Provide a MapLibre expression like ["==", ["get", "NO_TAKE"], "All"], or call clear_filter to show all features.',
+            };
+        }
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+        if (state.type === 'animation') {
+            state.filter = filter;
+            if (state.animation) state.animation.setFilter(filter);
+            return {
+                success: true,
+                layer: layerId,
+                displayName: state.displayName,
+                filter,
+                filterDescription: filter ? this.describeFilter(filter) : 'No filter (showing all)',
+            };
+        }
+        if (state.type !== 'vector') return { success: false, error: `Layer '${layerId}' is raster — filtering only works on vector layers` };
+
+        this.map.setFilter(state.mapLayerId, filter);
+        if (state.outlineLayerId) this.map.setFilter(state.outlineLayerId, filter);
+        state.filter = filter;
+
+        // featuresInView is a viewport metric, NOT a global match count:
+        // queryRenderedFeatures only sees currently-rendered tiles in the visible
+        // area. A valid filter whose matches are off-screen legitimately returns 0,
+        // so we deliberately do NOT flag 0 as a failure — that wrongly told users a
+        // correct filter had matched nothing (the human just needs to zoom out, and
+        // the filtered tiles redraw automatically as the view changes).
+        const features = this.map.queryRenderedFeatures({ layers: [state.mapLayerId] });
+        return {
+            success: true,
+            layer: layerId,
+            displayName: state.displayName,
+            filter,
+            filterDescription: filter ? this.describeFilter(filter) : 'No filter (showing all)',
+            featuresInView: features.length,
+        };
+    }
+
+    /**
+     * Clear filter from a layer (show all features).
+     */
+    clearFilter(layerId) {
+        return this.setFilter(layerId, null);
+    }
+
+    /**
+     * Reset filter to the layer's config default (or clear if no default).
+     */
+    resetFilter(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+        return this.setFilter(layerId, state.defaultFilter);
+    }
+
+    // ---- Tooltip ----
+
+    /**
+     * Set which feature properties appear in the hover tooltip for a vector
+     * layer. Pass an empty array to disable the tooltip.
+     */
+    setTooltip(layerId, fields) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+        if (state.type !== 'vector') {
+            return { success: false, error: `Tooltips only apply to vector layers; '${layerId}' is ${state.type}` };
+        }
+        if (!Array.isArray(fields) || !fields.every(f => typeof f === 'string')) {
+            return { success: false, error: `fields must be an array of strings` };
+        }
+        state.tooltipFields = fields.length > 0 ? [...fields] : null;
+        return { success: true, layer: layerId, displayName: state.displayName, tooltipFields: state.tooltipFields };
+    }
+
+    /**
+     * Reset tooltip fields to the layer's config default (or disable if no default).
+     */
+    resetTooltip(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+        if (state.type !== 'vector') {
+            return { success: false, error: `Tooltips only apply to vector layers; '${layerId}' is ${state.type}` };
+        }
+        state.tooltipFields = state.defaultTooltipFields ? [...state.defaultTooltipFields] : null;
+        return { success: true, layer: layerId, displayName: state.displayName, tooltipFields: state.tooltipFields };
+    }
+
+    // ---- Styling ----
+
+    /**
+     * Apply paint properties to a layer.
+     * @param {string} layerId 
+     * @param {Object} paintProps - e.g. { 'fill-color': 'red', 'fill-opacity': 0.5 }
+     * @returns {Object} Result
+     */
+    setStyle(layerId, paintProps) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+
+        // Hex layers carry a single dynamic value column (e.g. "species_richness").
+        // The agent often emits a data-driven expression against a guessed
+        // property name — typically ["get","count"] — which resolves to null on
+        // every feature and silently fails to recolor (issue #259). Repoint any
+        // value-bearing `get` to the layer's real column before applying.
+        const corrected = new Set();
+        const results = [];
+        for (const [prop, rawValue] of Object.entries(paintProps)) {
+            let value = rawValue;
+            if (state.valueColumn) {
+                const { value: rewritten, replaced } = rewriteValueColumn(rawValue, state.valueColumn);
+                value = rewritten;
+                replaced.forEach(p => corrected.add(p));
+            }
+            try {
+                this.map.setPaintProperty(state.mapLayerId, prop, value);
+                results.push({ property: prop, success: true });
+            } catch (error) {
+                results.push({ property: prop, success: false, error: error.message });
+            }
+        }
+
+        const failed = results.filter(r => !r.success).map(r => r.property);
+        const layerType = this.map.getLayer?.(state.mapLayerId)?.type;
+        return {
+            success: failed.length === 0,
+            layer: layerId,
+            displayName: state.displayName,
+            updates: results,
+            ...(corrected.size > 0 && {
+                note: `Repointed value reference(s) ${[...corrected].map(p => `"${p}"`).join(', ')} to this layer's actual value column "${state.valueColumn}".`,
+            }),
+            ...(failed.length > 0 && {
+                error: `${failed.length}/${results.length} property update(s) failed: ${failed.join(', ')}. Layer type is "${layerType}" — use ${layerType}-prefixed paint properties (see set_style tool description for the supported set).`,
+            }),
+        };
+    }
+
+    /**
+     * Reset a layer's paint to defaults.
+     */
+    resetStyle(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+        return this.setStyle(layerId, state.defaultPaint);
+    }
+
+    // ---- Query ----
+
+    /**
+     * Get summary of all layers and their current state.
+     */
+    flyTo({ center, zoom }) {
+        const options = { center };
+        if (zoom !== undefined) options.zoom = zoom;
+        this.map.flyTo(options);
+        return { success: true, center, zoom: zoom ?? this.map.getZoom() };
+    }
+
+    getMapState() {
+        const layers = {};
+        for (const [id, state] of this.layers) {
+            layers[id] = {
+                displayName: state.displayName,
+                type: state.type,
+                visible: state.visible,
+                hasFilter: state.filter !== null,
+                filterDescription: state.filter ? this.describeFilter(state.filter) : null,
+                hasDefaultFilter: state.defaultFilter !== null,
+                defaultFilterDescription: state.defaultFilter ? this.describeFilter(state.defaultFilter) : null,
+                // Hex layers color by a single dynamic column; expose it so the
+                // agent styles against the real property, not a guess (#259).
+                ...(state.valueColumn && { valueColumn: state.valueColumn }),
+            };
+        }
+        return { success: true, layers };
+    }
+
+    /**
+     * Get all registered layer IDs.
+     */
+    getLayerIds() {
+        return [...this.layers.keys()];
+    }
+
+    /**
+     * Get vector layer IDs only.
+     */
+    getVectorLayerIds() {
+        return [...this.layers.entries()]
+            .filter(([, s]) => s.type === 'vector')
+            .map(([id]) => id);
+    }
+
+    /**
+     * Return every MapLibre layer ID belonging to this logical layer,
+     * in bottom-to-top paint order. Used by sendTopVisibleLayerToBack
+     * so vector fill+outline and all version sublayers move as a group.
+     */
+    _mapSublayersFor(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return [];
+        if (state.versions && state.versions.length > 0) {
+            const out = [];
+            for (const v of state.versions) {
+                if (v.mapLayerId) out.push(v.mapLayerId);
+                if (v.outlineLayerId) out.push(v.outlineLayerId);
+            }
+            return out;
+        }
+        const out = [];
+        if (state.mapLayerId) out.push(state.mapLayerId);
+        if (state.outlineLayerId) out.push(state.outlineLayerId);
+        return out;
+    }
+
+    /**
+     * Send the topmost visible (non-animation) registered layer to the
+     * bottom of the registered-layer stack (just above basemap). Repeated
+     * calls cycle through visible layers with period N.
+     *
+     * Returns:
+     *   { success: true, layer: <id> }   when a layer was moved
+     *   { success: true, layer: null, reason: 'insufficient_visible_layers' }
+     *     when 0 or 1 visible layers, or only one registered layer total
+     */
+    sendTopVisibleLayerToBack() {
+        // Build sub-id → logical-id reverse index.
+        const subToLogical = new Map();
+        for (const id of this.layers.keys()) {
+            for (const sub of this._mapSublayersFor(id)) {
+                subToLogical.set(sub, id);
+            }
+        }
+
+        // Find topmost visible non-animation layer by walking style top-down.
+        const styleLayers = this.map.getStyle().layers;
+        let topVisibleId = null;
+        for (let i = styleLayers.length - 1; i >= 0; i--) {
+            const logical = subToLogical.get(styleLayers[i].id);
+            if (!logical) continue;
+            const state = this.layers.get(logical);
+            if (state && state.visible && state.type !== 'animation') {
+                topVisibleId = logical;
+                break;
+            }
+        }
+        if (!topVisibleId) {
+            return { success: true, layer: null, reason: 'insufficient_visible_layers' };
+        }
+
+        // Need at least 2 visible non-animation layers to have a cycle effect.
+        if (this._cycleBtnShouldBeDisabled()) {
+            return { success: true, layer: null, reason: 'insufficient_visible_layers' };
+        }
+
+        // Find floor: bottommost registered sublayer not belonging to topVisibleId.
+        const ownSubs = this._mapSublayersFor(topVisibleId);
+        const ownSubSet = new Set(ownSubs);
+        const floorLayer = styleLayers.find(l => subToLogical.has(l.id) && !ownSubSet.has(l.id));
+        if (!floorLayer) {
+            return { success: true, layer: null, reason: 'insufficient_visible_layers' };
+        }
+
+        // Move all own sublayers bottom-to-top (order from _mapSublayersFor), all before floorLayer.
+        for (const sub of ownSubs) {
+            this.map.moveLayer(sub, floorLayer.id);
+        }
+
+        this._refreshCycleBtnState();
+        return { success: true, layer: topVisibleId };
+    }
+
+    /**
+     * Toggle the cycle button's disabled attribute based on whether
+     * there are 2+ visible non-animation layers (the minimum needed
+     * for a visible cycle effect). Called from generateMenu, the
+     * checkbox change handler in generateControls, syncCheckbox, and
+     * sendTopVisibleLayerToBack.
+     */
+    _refreshCycleBtnState() {
+        if (typeof document === 'undefined') return;
+        const btn = document.getElementById('cycle-top-layer');
+        if (!btn) return;
+        btn.disabled = this._cycleBtnShouldBeDisabled();
+    }
+
+    /**
+     * Pure helper: returns true when fewer than 2 visible non-animation
+     * layers exist (i.e. the cycle button has no useful effect).
+     */
+    _cycleBtnShouldBeDisabled() {
+        let count = 0;
+        for (const state of this.layers.values()) {
+            if (state.visible && state.type !== 'animation' && state.type !== 'basemap') count++;
+            if (count >= 2) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Get [{id, displayName, type}, ...] for all registered layers — used to
+     * build informative layer lists in LLM tool descriptions so the agent can
+     * disambiguate siblings by displayName instead of guessing by ID suffix.
+     */
+    getLayerSummaries() {
+        return [...this.layers.entries()].map(([id, state]) => ({
+            id,
+            displayName: state.displayName,
+            type: state.type,
+        }));
+    }
+
+    /**
+     * Get a layer's filterable columns.
+     */
+    getLayerColumns(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return null;
+        return state.columns.filter(c => !['h0', 'h8', 'h9', 'h10', 'geometry'].includes(c.name));
+    }
+
+    // ---- UI Generation ----
+
+    /**
+     * Switch the active basemap by name ('natgeo' | 'satellite' | 'plain' |
+     * or the optional PMTiles vector key e.g. 'tokyo').
+     * Also toggles 3D terrain on/off based on the basemap's terrain flag.
+     * @param {string} name
+     */
+    setBasemap(name) {
+        const isVector = name === this._basemapVectorKey && !!this._basemapVectorKey;
+        if (!isVector && !this._basemaps[name]) return;
+        this._currentBasemap = name;
+        // Raster presets: toggle visibility of their `-base` layer.
+        Object.keys(this._basemaps).forEach(key => {
+            const vis = (!isVector && key === name) ? 'visible' : 'none';
+            if (this.map.getLayer(key + '-base')) {
+                this.map.setLayoutProperty(key + '-base', 'visibility', vis);
+            }
+        });
+        // PMTiles vector basemap: toggle its styled layers as a group.
+        if (this._basemapVectorLayers.length > 0) {
+            const vis = isVector ? 'visible' : 'none';
+            for (const l of this._basemapVectorLayers) {
+                if (this.map.getLayer(l.id)) {
+                    this.map.setLayoutProperty(l.id, 'visibility', vis);
+                }
+            }
+        }
+        if (this._maptilerKey && this.map.getSource('terrain-dem')) {
+            if (!isVector && this._basemaps[name].terrain) {
+                this.map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+            } else {
+                this.map.setTerrain(null);
+            }
+        }
+        document.querySelectorAll('.basemap-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.basemap === name);
+        });
+    }
+
+    /**
+     * Switch between 'globe' and 'mercator' projection.
+     * @param {'globe'|'mercator'} type
+     */
+    setProjection(type) {
+        this._globeEnabled = type === 'globe';
+        this.map.setProjection({ type });
+        const btn = document.getElementById('globe-btn');
+        if (btn) btn.classList.toggle('active', this._globeEnabled);
+    }
+
+    /**
+     * Generate the full menu: collapse header, basemap buttons, globe toggle,
+     * overlays section, and layer-controls-container. Call once after map is ready.
+     * @param {HTMLElement|string} container - DOM element or element ID for #menu
+     */
+    generateMenu(container) {
+        if (typeof container === 'string') container = document.getElementById(container);
+        if (!container) return;
+
+        // ── Collapse header (always visible) ────────────────────────────
+        const menuHeader = document.createElement('div');
+        menuHeader.className = 'menu-header';
+        const layersTitle = document.createElement('label');
+        layersTitle.className = 'section-title';
+        layersTitle.textContent = 'Layers';
+        const menuToggle = document.createElement('button');
+        menuToggle.id = 'menu-toggle';
+        menuToggle.title = 'Toggle layers';
+        menuToggle.textContent = '−';
+        menuToggle.addEventListener('click', () => {
+            container.classList.toggle('collapsed');
+            menuToggle.textContent = container.classList.contains('collapsed') ? '+' : '−';
+        });
+        menuHeader.appendChild(layersTitle);
+        // Globe toggle kept in the header (projection, not a basemap choice).
+        const globeBtn = document.createElement('button');
+        globeBtn.id = 'globe-btn';
+        globeBtn.className = 'globe-btn' + (this._globeEnabled ? ' active' : '');
+        globeBtn.title = 'Toggle globe view';
+        globeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+        globeBtn.addEventListener('click', () => this.setProjection(this._globeEnabled ? 'mercator' : 'globe'));
+        menuHeader.appendChild(globeBtn);
+        menuHeader.appendChild(menuToggle);
+        container.appendChild(menuHeader);
+
+        // ── Collapsible body ─────────────────────────────────────────────
+        const menuBody = document.createElement('div');
+        menuBody.id = 'menu-body';
+
+        // Overlays section
+        const overlaysSection = document.createElement('div');
+        overlaysSection.className = 'menu-section';
+
+        // Overlays header: "OVERLAYS" label + send-to-back button inline,
+        // right next to the layer stack the button reorders.
+        const overlaysHeader = document.createElement('div');
+        overlaysHeader.className = 'menu-section-header';
+        const overlaysTitle = document.createElement('label');
+        overlaysTitle.className = 'section-title';
+        overlaysTitle.textContent = 'Overlays';
+        const cycleBtn = document.createElement('button');
+        cycleBtn.id = 'cycle-top-layer';
+        cycleBtn.className = 'menu-header-btn';
+        cycleBtn.title = 'Send the topmost visible layer to the back';
+        cycleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg>';
+        cycleBtn.addEventListener('click', () => this.sendTopVisibleLayerToBack());
+        overlaysHeader.appendChild(overlaysTitle);
+        overlaysHeader.appendChild(cycleBtn);
+        overlaysSection.appendChild(overlaysHeader);
+
+        const layerControls = document.createElement('div');
+        layerControls.id = 'layer-controls-container';
+        layerControls.className = 'checkbox-group';
+        overlaysSection.appendChild(layerControls);
+        menuBody.appendChild(overlaysSection);
+
+        container.appendChild(menuBody);
+
+        this._refreshCycleBtnState();
+    }
+
+    /**
+     * Generate checkbox controls in a container element.
+     * @param {HTMLElement|string} container - DOM element or element ID
+     */
+    generateControls(container) {
+        if (typeof container === 'string') {
+            container = document.getElementById(container);
+        }
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Group layers by their group name (null → ungrouped)
+        const groups = new Map();
+        for (const [layerId, state] of this.layers) {
+            const key = state.group || '';
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push([layerId, state]);
+        }
+
+        for (const [groupName, entries] of groups) {
+            let itemContainer;
+
+            if (groupName) {
+                const details = document.createElement('details');
+                details.open = !entries[0][1].groupCollapsed;
+                details.className = 'layer-group';
+
+                const summary = document.createElement('summary');
+                summary.className = 'layer-group-title';
+                summary.textContent = groupName;
+                details.appendChild(summary);
+
+                container.appendChild(details);
+                itemContainer = details;
+            } else {
+                itemContainer = container;
+            }
+
+            for (const [layerId, state] of entries) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'layer-item';
+
+                const label = document.createElement('label');
+                label.className = 'layer-toggle';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `toggle-${layerId.replace(/\//g, '-')}`;
+                checkbox.checked = state.visible;
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) this.showLayer(layerId);
+                    else this.hideLayer(layerId);
+                    this._refreshCycleBtnState();
+                });
+
+                const span = document.createElement('span');
+                span.textContent = state.displayName;
+
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                wrapper.appendChild(label);
+
+                // Version selector dropdown for versioned layers
+                if (state.versions && state.versions.length > 1) {
+                    const select = document.createElement('select');
+                    select.className = 'version-select';
+                    select.id = `version-${layerId.replace(/\//g, '-')}`;
+                    for (let i = 0; i < state.versions.length; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = state.versions[i].label;
+                        if (i === state.activeVersionIndex) opt.selected = true;
+                        select.appendChild(opt);
+                    }
+                    select.addEventListener('change', () => {
+                        this.switchVersion(layerId, parseInt(select.value, 10));
+                    });
+                    wrapper.appendChild(select);
+                }
+
+                itemContainer.appendChild(wrapper);
+            }
+        }
+    }
+
+    /**
+     * Sync a checkbox to match current layer visibility
+     * (called when agent changes visibility programmatically).
+     */
+    syncCheckbox(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return;
+        const checkbox = document.getElementById(`toggle-${layerId.replace(/\//g, '-')}`);
+        if (checkbox) checkbox.checked = state.visible;
+        this._refreshCycleBtnState();
+    }
+
+    /**
+     * Switch the active version of a versioned layer.
+     * Hides the old version, shows the new one (if the layer is visible),
+     * and carries over the current filter to the new version.
+     *
+     * @param {string} layerId - Logical layer ID
+     * @param {number} newIndex - Version index to activate
+     * @returns {Object} Result
+     */
+    switchVersion(layerId, newIndex) {
+        const state = this.layers.get(layerId);
+        if (!state) return { success: false, error: `Unknown layer: ${layerId}` };
+        if (!state.versions) return { success: false, error: `Layer '${layerId}' is not versioned` };
+        if (newIndex < 0 || newIndex >= state.versions.length) {
+            return { success: false, error: `Version index ${newIndex} out of range (0–${state.versions.length - 1})` };
+        }
+        if (newIndex === state.activeVersionIndex) return { success: true, layer: layerId, version: state.versions[newIndex].label, noChange: true };
+
+        const oldV = state.versions[state.activeVersionIndex];
+        const newV = state.versions[newIndex];
+
+        // Hide old version's MapLibre layers
+        this.map.setLayoutProperty(oldV.mapLayerId, 'visibility', 'none');
+        if (oldV.outlineLayerId) this.map.setLayoutProperty(oldV.outlineLayerId, 'visibility', 'none');
+
+        // Carry over filter to new version
+        if (state.filter) {
+            try {
+                this.map.setFilter(newV.mapLayerId, state.filter);
+                if (newV.outlineLayerId) this.map.setFilter(newV.outlineLayerId, state.filter);
+            } catch (e) {
+                console.warn(`[Map] Could not apply filter to new version:`, e);
+            }
+        }
+
+        // Show new version if the logical layer is visible
+        if (state.visible) {
+            this.map.setLayoutProperty(newV.mapLayerId, 'visibility', 'visible');
+            if (newV.outlineLayerId) this.map.setLayoutProperty(newV.outlineLayerId, 'visibility', 'visible');
+        }
+
+        // Update state pointers
+        state.activeVersionIndex = newIndex;
+        state.mapLayerId = newV.mapLayerId;
+        state.outlineLayerId = newV.outlineLayerId;
+        state.sourceId = newV.sourceId;
+        state.sourceLayer = newV.sourceLayer;
+
+        // Refresh raster legend if visible (tile URL changed)
+        if (state.type === 'raster' && state.visible) {
+            this._hideLegend(layerId);
+            this._legendItems.delete(layerId);   // force re-creation with new source
+            this._showLegend(layerId);
+        }
+
+        return { success: true, layer: layerId, version: newV.label };
+    }
+
+    // ---- Legend ----
+
+    /**
+     * Whether a layer contributes a legend entry: continuous rasters (colorbar),
+     * any layer with a categorical class list, and continuous vector layers
+     * (graduated choropleths) whose colorbar can be sourced from config or
+     * derived from their paint expression (#258).
+     */
+    _hasLegend(state) {
+        return state.type === 'raster'
+            || (state.legendType === 'categorical' && state.legendClasses?.length > 0)
+            || (state.legendType === 'continuous' && !!this._continuousVectorLegend(state));
+    }
+
+    /**
+     * Resolve a continuous vector layer's colorbar — explicit `legendGradient` /
+     * `legendRange` config wins, otherwise derive both from the layer's paint
+     * `interpolate`/`step` color expression. Returns null when neither is
+     * available (so the layer simply contributes no legend).
+     *
+     * @returns {{ colors: string[], range: [number, number] } | null}
+     */
+    _continuousVectorLegend(state) {
+        if (state.type !== 'vector') return null;
+        const derived = deriveContinuousLegend(state.defaultPaint);
+        const colors = (Array.isArray(state.legendGradient) && state.legendGradient.length >= 2)
+            ? state.legendGradient
+            : derived?.gradient;
+        const range = (Array.isArray(state.legendRange) && state.legendRange.length === 2)
+            ? state.legendRange
+            : derived?.range;
+        if (!colors || colors.length < 2 || !range) return null;
+        return { colors, range };
+    }
+
+    /**
+     * Render the legend for a layer that loads visible, so default-on layers
+     * show their legend at boot (registerLayer sets visibility directly and
+     * never routes through showLayer).
+     */
+    _showLegendIfVisible(layerId) {
+        const state = this.layers.get(layerId);
+        if (state?.visible && this._hasLegend(state)) this._showLegend(layerId);
+    }
+
+    _ensureLegend() {
+        if (this._legendEl) return;
+
+        const legend = document.createElement('div');
+        legend.id = 'legend';
+        legend.innerHTML = `
+            <div id="legend-header">
+                <h3>Legend</h3>
+                <button id="legend-toggle" title="Toggle legend">−</button>
+            </div>
+            <div id="legend-content"></div>
+        `;
+        document.body.appendChild(legend);
+        this._legendEl = legend;
+        this._legendContent = legend.querySelector('#legend-content');
+
+        legend.querySelector('#legend-toggle').addEventListener('click', () => {
+            const collapsed = this._legendContent.classList.toggle('collapsed');
+            legend.querySelector('#legend-toggle').textContent = collapsed ? '+' : '−';
+        });
+    }
+
+    async _getColormapGradient(colormap) {
+        if (this._colormapCache.has(colormap)) return this._colormapCache.get(colormap);
+        try {
+            const resp = await fetch(`${this.titilerUrl}/colorMaps/${colormap}`);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            const stops = [0, 28, 57, 85, 113, 141, 170, 198, 226, 255].map(i => {
+                const [r, g, b, a] = data[String(i)] || [128, 128, 128, 255];
+                return `rgba(${r},${g},${b},${(a / 255).toFixed(2)})`;
+            });
+            const gradient = `linear-gradient(to right, ${stops.join(', ')})`;
+            this._colormapCache.set(colormap, gradient);
+            return gradient;
+        } catch {
+            return 'linear-gradient(to right, #eee, #333)';
+        }
+    }
+
+    async _showLegend(layerId) {
+        const state = this.layers.get(layerId);
+        if (!state) return;
+
+        this._ensureLegend();
+        this._legendEl.style.display = '';
+
+        if (this._legendItems.has(layerId)) {
+            this._legendItems.get(layerId).style.display = '';
+            return;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'legend-section';
+
+        // Display name, class names, and color hints come from STAC metadata
+        // (untrusted) — build the legend via textContent and validate colors
+        // before they reach a style attribute.
+        const heading = document.createElement('h4');
+        heading.textContent = state.displayName;
+        item.appendChild(heading);
+
+        const continuousVector = state.legendType === 'continuous'
+            ? this._continuousVectorLegend(state)
+            : null;
+
+        if (state.legendType === 'categorical' && state.legendClasses?.length) {
+            for (const cls of state.legendClasses) {
+                const row = document.createElement('div');
+                row.className = 'legend-item';
+                const swatch = document.createElement('span');
+                swatch.style.background = this._safeColorHint(cls['color-hint'] || cls.color_hint);
+                row.appendChild(swatch);
+                row.appendChild(document.createTextNode(cls.name || `Class ${cls.value}`));
+                item.appendChild(row);
+            }
+        } else if (continuousVector) {
+            // Continuous vector (graduated choropleth): build the gradient from
+            // the layer's own color stops — no TiTiler colormap/rescale (#258).
+            const safe = continuousVector.colors.map(c => this._safeColorHint(c)).filter(Boolean);
+            const gradient = safe.length >= 2
+                ? `linear-gradient(to right, ${safe.join(', ')})`
+                : 'linear-gradient(to right, #eee, #333)';
+            const [minVal, maxVal] = continuousVector.range;
+            const unit = state.legendLabel ? ` ${state.legendLabel}` : '';
+            const bar = document.createElement('div');
+            bar.className = 'legend-colorbar';
+            bar.style.background = gradient;
+            const labels = document.createElement('div');
+            labels.className = 'legend-labels';
+            for (const v of [minVal, maxVal]) {
+                const span = document.createElement('span');
+                span.textContent = `${v}${unit}`;
+                labels.appendChild(span);
+            }
+            item.appendChild(bar);
+            item.appendChild(labels);
+        } else {
+            const gradient = await this._getColormapGradient(state.colormap || 'reds');
+            const [minVal, maxVal] = (state.rescale || '0,1').split(',');
+            const unit = state.legendLabel ? ` ${state.legendLabel}` : '';
+            const bar = document.createElement('div');
+            bar.className = 'legend-colorbar';
+            bar.style.background = gradient;
+            const labels = document.createElement('div');
+            labels.className = 'legend-labels';
+            for (const v of [minVal, maxVal]) {
+                const span = document.createElement('span');
+                span.textContent = `${v}${unit}`;
+                labels.appendChild(span);
+            }
+            item.appendChild(bar);
+            item.appendChild(labels);
+        }
+
+        this._legendContent.appendChild(item);
+        this._legendItems.set(layerId, item);
+    }
+
+    _hideLegend(layerId) {
+        const item = this._legendItems.get(layerId);
+        if (item) item.style.display = 'none';
+        // Hide the whole panel when nothing is visible
+        if (this._legendEl) {
+            const anyVisible = [...this._legendItems.values()].some(el => el.style.display !== 'none');
+            this._legendEl.style.display = anyVisible ? '' : 'none';
+        }
+    }
+
+    // ---- Utilities ----
+
+    _wireTooltip(mapLayerId, layerId) {
+        this.map.on('mousemove', mapLayerId, (e) => {
+            const fields = this.layers.get(layerId)?.tooltipFields;
+            if (!fields || fields.length === 0) return;
+            if (!e.features || e.features.length === 0) return;
+            const props = e.features[0].properties;
+            const present = fields
+                .filter(f => props[f] !== undefined && props[f] !== null && props[f] !== '');
+            if (present.length === 0) return;
+            // Field names and feature values are untrusted (LLM-chosen /
+            // dataset-supplied) — build the table via textContent, never HTML.
+            const table = document.createElement('table');
+            for (const f of present) {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th');
+                th.textContent = f;
+                const td = document.createElement('td');
+                td.textContent = String(this._formatTooltipValue(f, props[f]));
+                tr.appendChild(th);
+                tr.appendChild(td);
+                table.appendChild(tr);
+            }
+            this._tooltip.replaceChildren(table);
+            this._tooltip.style.display = 'block';
+            this._tooltip.style.left = (e.originalEvent.clientX + 12) + 'px';
+            this._tooltip.style.top = (e.originalEvent.clientY - 12) + 'px';
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.map.on('mouseleave', mapLayerId, () => {
+            this._tooltip.style.display = 'none';
+            this.map.getCanvas().style.cursor = '';
+        });
+
+        // Click → persistent popup with the same tooltip fields. Lets users
+        // inspect a grid cell's attributes without hovering (Phase 1 need for
+        // the Tokyo LST grid). Reuses one popup instance across features.
+        this.map.on('click', mapLayerId, (e) => {
+            const fields = this.layers.get(layerId)?.tooltipFields;
+            if (!fields || fields.length === 0) return;
+            if (!e.features || e.features.length === 0) return;
+            const props = e.features[0].properties;
+            const present = fields
+                .filter(f => props[f] !== undefined && props[f] !== null && props[f] !== '');
+            if (present.length === 0) return;
+            const table = document.createElement('table');
+            table.className = 'map-popup-table';
+            for (const f of present) {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th');
+                th.textContent = f;
+                const td = document.createElement('td');
+                td.textContent = String(this._formatTooltipValue(f, props[f]));
+                tr.appendChild(th);
+                tr.appendChild(td);
+                table.appendChild(tr);
+            }
+            this._popup = this._popup || new maplibregl.Popup({ closeButton: true, maxWidth: '340px' });
+            this._popup.setLngLat(e.lngLat).setDOMContent(table).addTo(this.map);
+        });
+    }
+
+    /**
+     * STAC `color-hint` values land in a style attribute — accept only hex
+     * colors (with or without leading '#'), grey fallback for anything else.
+     */
+    _safeColorHint(raw) {
+        if (raw == null || !/^#?[0-9a-fA-F]{3,8}$/.test(String(raw))) return '#888888';
+        const hex = String(raw);
+        return hex.startsWith('#') ? hex : `#${hex}`;
+    }
+
+    _formatTooltipValue(field, value) {
+        const lf = field.toLowerCase();
+        if (typeof value === 'number' && (lf.includes('value') || lf.includes('price') || lf.includes('cost'))) {
+            return '$' + value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+        if (typeof value === 'number' && (lf.includes('acres') || lf.includes('area'))) {
+            return value.toLocaleString('en-US', { maximumFractionDigits: 1 });
+        }
+        return value;
+    }
+
+    describeFilter(filter) {
+        if (!filter || !Array.isArray(filter)) return 'No filter';
+
+        const op = filter[0];
+        if (['==', '!=', '>', '<', '>=', '<='].includes(op)) {
+            const opText = { '==': 'equals', '!=': 'not equals', '>': '>', '<': '<', '>=': '>=', '<=': '<=' };
+            return `${filter[1]} ${opText[op]} ${filter[2]}`;
+        }
+        if (op === 'in') return `${filter[1]} in [${filter.slice(2).join(', ')}]`;
+        if (op === 'all') return filter.slice(1).map(f => this.describeFilter(f)).join(' AND ');
+        if (op === 'any') return '(' + filter.slice(1).map(f => this.describeFilter(f)).join(' OR ') + ')';
+        if (op === 'has') return `has '${filter[1]}'`;
+        return JSON.stringify(filter);
+    }
+}

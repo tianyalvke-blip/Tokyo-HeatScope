@@ -1,0 +1,17 @@
+# Spatial Tools dependencies for GLEN LST Agent (experimental branch).
+# These are ADDITIONAL to the base environment (duckdb, fastmcp, pmtiles, ...).
+# Install with:
+#   .venv\Scripts\pip install -r requirements-spatial.txt
+#
+# NOTE: do not `pip install --upgrade everything` — only these are needed.
+
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.0
+geopandas==1.1.4
+libpysal==4.15.0
+esda==2.10.0
+shapely==2.1.2
+pyproj==3.7.2
+tqdm==4.67.1

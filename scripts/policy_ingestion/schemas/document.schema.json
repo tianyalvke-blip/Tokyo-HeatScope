@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "document.schema.json",
+  "title": "Policy document",
+  "type": "object",
+  "required": ["document_id", "title_ja", "title_en", "authority", "government_level", "document_type", "publication_year", "status", "geography", "topics", "language", "source_file", "source_sha256", "source_url", "pages", "processed_at", "notes"],
+  "properties": {
+    "document_id": {"type": "string", "minLength": 1},
+    "title_ja": {"type": "string", "minLength": 1},
+    "title_en": {"type": "string"},
+    "authority": {"type": "string"},
+    "government_level": {"enum": ["metropolitan", "ward", "national", "municipal", "other", "unknown"]},
+    "document_type": {"type": "string"},
+    "publication_year": {"type": ["integer", "null"]},
+    "status": {"enum": ["current", "current_action_plan", "guideline", "historical_reference", "draft", "superseded", "unknown"]},
+    "geography": {"type": "array", "items": {"type": "string"}},
+    "topics": {"type": "array", "items": {"type": "string"}},
+    "language": {"type": "string"},
+    "source_file": {"type": "string", "minLength": 1},
+    "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_url": {"type": ["string", "null"]},
+    "pages": {"type": "integer", "minimum": 1},
+    "processed_at": {"type": "string"},
+    "notes": {"type": "string"},
+    "extraction": {"type": "object"}
+  },
+  "additionalProperties": true
+}
+

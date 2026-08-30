@@ -1,0 +1,10 @@
+{
+  "validation_errors": [],
+  "parsing_warnings": [
+    "Embedded text quality was 0.87; used rendered-page Japanese OCR.",
+    "Rendered-page OCR was required by the document metadata to prevent embedded-text cross-page bleed.",
+    "Page 31: fewer than three table-row anchors recognized.",
+    "Page 31: fewer than three table-row anchors recognized.",
+    "Page 31: fewer than three table-row anchors recognized."
+  ]
+}

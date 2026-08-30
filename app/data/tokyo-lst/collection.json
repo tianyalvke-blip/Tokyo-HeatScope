@@ -1,0 +1,164 @@
+{
+  "type": "Collection",
+  "id": "tokyo-lst",
+  "title": "Tokyo Day-Night LST Grid (200 m)",
+  "description": "Daytime and nighttime land surface temperature (LST) for a 200 m x 200 m grid over Tokyo 23 Wards, with urban covariates. LST is the temperature of the land surface, NOT air temperature. Units: degrees Celsius.",
+  "license": "proprietary",
+  "keywords": [
+    "LST",
+    "land surface temperature",
+    "Tokyo",
+    "urban heat",
+    "200m grid"
+  ],
+  "providers": [
+    {
+      "name": "GLEN LST Project",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          139.564901,
+          35.531128,
+          139.917527,
+          35.817431
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          null,
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "grid_id",
+      "type": "integer",
+      "description": "Unique spatial unit ID of the 200 m grid cell"
+    },
+    {
+      "name": "day_lst",
+      "type": "number",
+      "description": "Daytime Land Surface Temperature (degrees Celsius)"
+    },
+    {
+      "name": "night_lst",
+      "type": "number",
+      "description": "Nighttime Land Surface Temperature (degrees Celsius)"
+    },
+    {
+      "name": "day_night_gap",
+      "type": "number",
+      "description": "Daytime minus nighttime LST (degrees Celsius)"
+    },
+    {
+      "name": "centroid_lon",
+      "type": "number",
+      "description": "Grid cell centroid longitude (EPSG:4326)"
+    },
+    {
+      "name": "centroid_lat",
+      "type": "number",
+      "description": "Grid cell centroid latitude (EPSG:4326)"
+    },
+    {
+      "name": "dist_to_coast",
+      "type": "number",
+      "description": "Distance to coastline (meters)"
+    },
+    {
+      "name": "elevation_mean",
+      "type": "number",
+      "description": "Mean elevation (meters)"
+    },
+    {
+      "name": "water_ratio",
+      "type": "number",
+      "description": "Fraction of the cell covered by water (0-1)"
+    },
+    {
+      "name": "dist_to_major_river",
+      "type": "number",
+      "description": "Distance to nearest major river (meters)"
+    },
+    {
+      "name": "avg_height",
+      "type": "number",
+      "description": "Mean building height (meters); null where no buildings"
+    },
+    {
+      "name": "road_length",
+      "type": "number",
+      "description": "Total road length within the cell (meters)"
+    },
+    {
+      "name": "bldg_coverage_ratio",
+      "type": "number",
+      "description": "Building footprint coverage ratio (0-1)"
+    },
+    {
+      "name": "svf_mean",
+      "type": "number",
+      "description": "Mean sky view factor (0-1)"
+    },
+    {
+      "name": "height_variance",
+      "type": "number",
+      "description": "Variance of building heights; null where no buildings"
+    },
+    {
+      "name": "ndvi",
+      "type": "number",
+      "description": "Normalized Difference Vegetation Index"
+    },
+    {
+      "name": "pop_2020_total",
+      "type": "number",
+      "description": "Census population (2020) area-weighted to the 200 m grid (CSIS simple 100 m mesh)"
+    },
+    {
+      "name": "pop_2020_density_km2",
+      "type": "number",
+      "description": "pop_2020_total / 0.04 km2 (persons per square kilometre)"
+    },
+    {
+      "name": "pop_0_14",
+      "type": "number",
+      "description": "Population aged 0-14 (2020, area-weighted)"
+    },
+    {
+      "name": "pop_15_64",
+      "type": "number",
+      "description": "Population aged 15-64 (2020, area-weighted)"
+    },
+    {
+      "name": "pop_65_over",
+      "type": "number",
+      "description": "Population aged 65+ (2020, area-weighted)"
+    }
+  ],
+  "assets": {
+    "grid-geojson": {
+      "title": "Tokyo LST grid (GeoJSON)",
+      "type": "application/geo+json",
+      "href": "data/tokyo_lst_grid.geojson",
+      "description": "200 m grid polygons with day_lst / night_lst and urban covariates (map display)."
+    },
+    "grid-parquet": {
+      "title": "Tokyo LST grid (Parquet)",
+      "type": "application/vnd.apache.parquet",
+      "href": "data/tokyo_lst_grid.parquet",
+      "description": "Flat tabular form of the grid for SQL analytics."
+    }
+  }
+}

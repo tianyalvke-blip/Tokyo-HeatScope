@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "documents": [
+    "tokyo_summer_heat_guideline_2019"
+  ],
+  "chunk_files": [
+    "knowledge/chunks/tokyo_summer_heat_guideline.jsonl"
+  ],
+  "retrieval": {
+    "lexical": {
+      "type": "bm25_japanese_character_ngram_and_word",
+      "status": "runtime_built"
+    },
+    "embedding": {
+      "index": null,
+      "status": "not_built",
+      "adapter": null
+    }
+  },
+  "note": "Layer B filters first; Layer A chunks are then ranked. Embeddings remain an optional future adapter."
+}

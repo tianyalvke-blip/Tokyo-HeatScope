@@ -1,0 +1,1261 @@
+{
+  "schema_version": "1.0.0",
+  "interventions": [
+    {
+      "intervention_id": "green_roof",
+      "name_ja": "屋上緑化",
+      "name_en": "green roof",
+      "category": "vegetation",
+      "target": [
+        "building_roof"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "office_commercial_building",
+        "urban_block"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling",
+        "reduce_heat_transfer"
+      ],
+      "expected_effects": [
+        "屋上 ( 屋根 ) 緑化の土壌などによる断熱効果 ( 省エネルギ - 効果 ) や 、 植物の蒸散による建物の蓄熱イ氏減は 、 緩和策として有効です 。 また 、 屋上庭園やガーデニングとして活用した場合は 、 屋上利用者のための適応策としても有効です 。 第 Ⅱ 部技術編 - 4 写真 4-1 郁文館夢学園屋上庭園平成 22 年度屋上緑化部門「環境大臣賞」屋上",
+        "・技術特殊緑化技術コンクール ( 財団法人都市緑化機構 )"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "屋上面の耐荷重及び防水 、 耐根対策の考慮が必要です 。",
+        "・植物は散水など - 定の管理をすることで 、 蒸散による効果が得られます 。"
+      ],
+      "maintenance": [
+        "散水 、 施肥 、 落ち葉等清掃 、 除草 、 病害虫駆除 、 せん定 、 点検等が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "芝類やセダム類による屋上緑化の設置に要する費用は 、 数万円 / m ( 材料 + 施工費 )",
+      "implementation_notes": [
+        "屋上 ( 屋根 ) に人工軽量土壌などの植栽基盤を敷き 、 その上を芝生や樹木などで緑化する対策です 。"
+      ],
+      "case_studies_ja": [
+        "東京スクエアガ - デン ( 東京都中央区 )",
+        "・豊島区役所 ( 東京都豊島区 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 25,
+          "page_end": 25,
+          "printed_page": 23,
+          "printed_page_end": 23,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p025-green_roof"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "building_insulation",
+      "name_ja": "断熱化",
+      "name_en": "building insulation",
+      "category": "building_envelope",
+      "target": [
+        "building_roof",
+        "building_wall",
+        "window"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "urban_block",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": false,
+        "morawanai": false
+      },
+      "mechanisms": [
+        "reduce_heat_transfer"
+      ],
+      "expected_effects": [
+        "建物の断熱性を高めることは 、 外の寒さや暑さを建物内に入れないようにして室内を一定の温度に保っため 、 建物内の快適性が向上し 、 省エネルギ - 効果があります 。 そのため空調設備からの排熱が減り 、 緩和策として有効です 。"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "断熱の場所及び工法により 、 新築時の方が導入しやすい場合があります 。",
+        "・導入の際は 、 専門家 ( 建築士など ) と相談の上 、 工法等の検討を行うことを推奨します 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "断熱の場所及び工法により 、 導入コストには幅があります 。",
+      "implementation_notes": [
+        "建物を断熱材 ( 熱を断っ材料 ) で覆うことで 、 建物内外の熱の移動を抑える対策です 。",
+        "・窓面等 ( 開口部 ) からの熱損失が高いため 、 窓面等での断熱対策が重要となります 。",
+        "・断熱の工法としては 、 建物の外側から断熱材で覆う「外断熱」と建物の内側から断熱材で覆う「内断熱」などがあります 。 冬の製房時に外に熱が逃げる割合の例夏の冷房時に外から熱が入る割合の例第",
+        "・ 6 、 第第 0 、 5 、 71 、 10 、 15 、 第 10 、 図 4 ー 1 平成 4 年省エネ基準レベルの断熱性能の住宅での計算例 2 第 Ⅱ 部技術編 , 当 ~"
+      ],
+      "case_studies_ja": [
+        "東京都都市整備局住宅の省エネリフォームガイドブック ( 平成 27 年 3 月 ) リフォ - ム実施事例参照",
+        "・東京都環境局東京都建築物環境計画書制度ホ - ムページ公表建物参照 (http://www7.kankyo.metro.tokyo.jp/building/area_select.html)"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 26,
+          "page_end": 26,
+          "printed_page": 24,
+          "printed_page_end": 24,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p026-building_insulation"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "roof_heat_shielding",
+      "name_ja": "遮熱化（建物屋根面）",
+      "name_en": "solar-reflective roof treatment",
+      "category": "building_envelope",
+      "target": [
+        "building_roof"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "urban_block",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": true,
+        "morawanai": false
+      },
+      "mechanisms": [
+        "reflect_solar_radiation",
+        "reduce_heat_transfer"
+      ],
+      "expected_effects": [
+        "屋根表面 ( 外部面 ) の日射反射により 、 熱上昇を抑えます 。",
+        "・屋根から建物内部への熱負荷が減るため 、 夏の冷房エネルギ - 消費量削減の効果が期待できます 。 そのため 、 空調設備からの排熱が減り 、 緩和策として有効です 。 ただし 、 断熱性能 ( 前述 p. 24 ) が低い建物は 、 冬の暖房エネルギ - 消費量が増加する場合があります 。 標準塗料塗料なし塗料日 0 塗料 AC 第 Ⅱ 部技術編 - 約 62 ℃ 約 47 ℃ 3 図 4-2 表面温度上昇緩和効果測定状況 ( 平成 16 年 8 月 13 日 )"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "白色の塗料等も遮熱効果が期待できます 。",
+        "・改修時の導入も可能です 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "4 ・屋根・屋上用高反射塗料の費用は 、 数千 ~ 1 万円 / 前後 ( 材料 + 施工費 )",
+      "implementation_notes": [
+        "屋根表面 ( 外部面 ) に日射反射率の高い建材等を使用した対策です 。"
+      ],
+      "case_studies_ja": [
+        "東京都都市整備局住宅の省エネリフォ - ムガイドブック ( 平成 27 年 3 月 ) リフォ - ム実施事例参照"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 27,
+          "page_end": 27,
+          "printed_page": 25,
+          "printed_page_end": 25,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p027-roof_heat_shielding"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "green_wall",
+      "name_ja": "壁面緑化",
+      "name_en": "green wall",
+      "category": "vegetation",
+      "target": [
+        "building_wall",
+        "window"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "urban_block",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling",
+        "reduce_surface_heat_storage"
+      ],
+      "expected_effects": [
+        "建物壁面 ( 緑化面 ) の表面温度の上昇を抑えるため 、 省エネルギ - 効果や建物の蓄熱低減により 、 緩和策として有効です 。 第 Ⅱ 部技術編 , 当 ~",
+        "・緑化周辺は植物の蒸散効果があり 、 熱環境が緩和され 、 また 、 緑化が日除けになる場合など 、 適応策としても有効です 。",
+        "・通常の壁に比べて水平方向に 0.5m 離れた地点での体感温度指標 SET* は 、 1 ℃ 程度低 5 いことが確認されています写真 4-3 緑のカーテン [ 左 ] 緑のカーテンにおける熱環境 6 [ 右 ]"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "灌水設備の故障により早期に枯失するおそれがあり 、 注意が必要です 。"
+      ],
+      "maintenance": [
+        "散水 、 施肥 、 落ち葉等清掃 、 病害虫駆除 、 せん定 、 点検等が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "7 ・壁面緑化の設置に要する費用は 、 数万 ~ 十数万円 / ( 材料 + 施工費 )",
+      "implementation_notes": [
+        "建物壁面 ( 外壁 ) 等に緑化を行う対策です 。",
+        "・建物壁面緑化は 、 事例も多く 、 住宅のべランダの小規模なものから 、 校舎などの壁全面を覆う大規模なものまで各地で実施されています 。",
+        "・つる性植物などを利用して 、 建物の壁面やべランダ 、 窓を覆う壁面緑化のことを緑のカ - テンといいます 。 写真 4-2 株式会社パソナ農援隊提供 ( 東京都千代田区 )"
+      ],
+      "case_studies_ja": [
+        "東京駅八重洲ログランレ - フ ( 東京都千代田区 )",
+        "・虎ノ門ファ - ストガ - デン ( 東京都港区 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 28,
+          "page_end": 28,
+          "printed_page": 26,
+          "printed_page_end": 26,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p028-green_wall"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "window_heat_shielding",
+      "name_ja": "遮熱化（建物窓面）",
+      "name_en": "solar-control window treatment",
+      "category": "building_envelope",
+      "target": [
+        "window"
+      ],
+      "applicable_scenarios": [
+        "detached_house",
+        "office_commercial_building"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": false,
+        "morawanai": false
+      },
+      "mechanisms": [
+        "reflect_solar_radiation",
+        "reduce_heat_transfer"
+      ],
+      "expected_effects": [
+        "窓面の日射を反射させるため 、 建物への熱の侵入を低減し 、 夏の冷房エネルギ - 消費量が減少して ( 室内温度は約 2 ℃ 低減 8 ) 、 空調設備からの排熱が減るため 、 緩和策として有効です 。 ただし 、 窓面からの日射を反射することによって 、 建物への熱の侵入も低減するため 、 冬の暖房エネルギ - 消費量が増加する可能性があります 。 【 対策無しの場合 】 【 日射遮フィルムを利用した場合 】 日射遭フィルム日射量日射量透過量反射量反射伝導熱量 ( ※ 2 ) 伝導熱量題熱量額熱量 ( ※ 1 ) 第 Ⅱ 部技術編 - ガラスガラス ※ 1",
+        "・熱量直接大気を暖める熱 、 大気悪度との差によって生しる 2 伝熱量建物内部に伝わる熱 . 室内に影響を及ほし 、 建物室内悪度との差によって生しる図 4-3 日射遮フィルム概念図 9"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "日射反射フィルムなどによる対策は 、 既存の建物への導入も容易です 。",
+        "・改修時の対応も可能です 。",
+        "・冬の暖房エネルギ - 消費量が増加する場合があります 。 日射反射と断熱性を兼ねた材料を選定した場合は 、 夏冬共に省エネルギ - 効果があります 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "窓用日射遮蔽フィルムに要する費用は 、 数万円 / ( 材料 + 施工費 ) 4",
+      "implementation_notes": [
+        "建物の窓面等 ( 開口部 ) で日射を反射させる対策です 。",
+        "・窓ガラス 、 塗料や窓フィルム等があります 。"
+      ],
+      "case_studies_ja": [
+        "東京都都市整備局住宅の省エネリフォ - ムガイドブック事例紹介"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 29,
+          "page_end": 29,
+          "printed_page": 27,
+          "printed_page_end": 27,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p029-window_heat_shielding"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "retroreflective_surface",
+      "name_ja": "再帰反射化",
+      "name_en": "retroreflective surface treatment",
+      "category": "surface_material",
+      "target": [
+        "building_wall",
+        "window"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "office_commercial_building",
+        "urban_block"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "reduce_surface_heat_storage",
+        "reflect_solar_radiation",
+        "redirect_reflected_solar_radiation"
+      ],
+      "expected_effects": [
+        "建物の外壁及び窓面からの日射を上空に返す ( 再帰反射 ) ため 、 地表面の蓄熱を防ぐ緩和策として有効です 。 また 、 歩行者空間への暑熱の影響を減少させるための適応策としても有効です 。",
+        "・窓面の再帰反射フィルムの効果については 、 従来の外壁や高反射窓フィルムを設置した場合と比べて 、 建物前面道路の路面温度は 5 ℃ 程度低くなることが確認されています ( 南面",
+        "・西面 ) 1",
+        "・窓面に再帰反射フィルムを採用した場合 、 「 ⑤ 遮熱化 ( 建物窓面での対策 ) 」 ( 前述 p. 27 ) と同様の効果があります 。",
+        "・外壁面を再帰反射化した場合 、 外壁面への蓄熱を抑制するため 、 緩和策としても有効です ( 熱を「ためない」効果があります 。 ( ※ 1 ) ) 。 図 4-4 通常の遮熱化のイメージ図 [ 左 ] と再帰反射のイメージ 1 [ 右 ]"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "窓用再帰反射フィルムなどによる対策は 、 既存の建物への導入も容易です 。",
+        "・改修時の対応も可能です 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "工法等により 、 導入コストには幅があります 。",
+      "implementation_notes": [
+        "建物壁面等が受けた日射の一部を上空に返す ( 再帰反射 ) 対策です 。",
+        "・窓面に適用するフィルムのほか 、 外壁に適用できるタイルが開発されています 。",
+        "・近年 、 建物窓面の日射反射を高めて建物内部への熱侵入を抑制するフィルム等が普及し 、 窓からの日射反射による歩行空間の熱環境の悪化が懸念されています 。 の点を考慮して 、 日射の反射を上空へ返す ( 再帰反射 ) 技術が開発されています 1 0 。"
+      ],
+      "case_studies_ja": [
+        "1 2 、 1 3",
+        "・東京電機大学東京千住キャンバス ( 東京都足立区 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 30,
+          "page_end": 30,
+          "printed_page": 28,
+          "printed_page_end": 28,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p030-retroreflective_surface"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "energy_efficiency",
+      "name_ja": "省エネルギー化",
+      "name_en": "energy efficiency",
+      "category": "energy",
+      "target": [
+        "building_equipment"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": false,
+        "morawanai": false
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "(1)空調やその他の設備機器等の高効率化や再生可能エネルギ-利用(自然採光、自然通風、太陽光、地中熱など)による省エネルギ-化によって排熱を減らします",
+        "(2)空調設備からの排熱を緩和し、気温上昇を抑制する策として次の2つの対策があります",
+        "水冷式注1を採用することにより、設備からの排熱を潜熱化(冷却塔の利用によって排熱を顕熱Aではなく潜熱8として放出)し、気温上昇を抑制します"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "設備機器等の更新時に対応が可能です 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "手法等により 、 導入コストには幅があります 。",
+      "implementation_notes": [],
+      "case_studies_ja": [
+        "東京スカイツリ - タウン / 地域冷暖房注 3 ( 地中熱ヒ - トボンプ )",
+        "・東京都環境局東京都建築物環境計画書制度ホ - ムへ - ジ公表建物参照 (http://www7.kankyo.metro.tokyo.jp/bulld ng/area_se ect. html)"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "low",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 31,
+          "page_end": 32,
+          "printed_page": 29,
+          "printed_page_end": 30,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p031-energy_efficiency"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "waste_heat_mitigation",
+      "name_ja": "排熱の緩和",
+      "name_en": "waste-heat mitigation",
+      "category": "anthropogenic_heat",
+      "target": [
+        "building_equipment"
+      ],
+      "applicable_scenarios": [
+        "office_commercial_building",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": false,
+        "morawanai": false
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "(1)空調やその他の設備機器等の高効率化や再生可能エネルギ-利用(自然採光、自然通風、太陽光、地中熱など)による省エネルギ-化によって排熱を減らします",
+        "(2)空調設備からの排熱を緩和し、気温上昇を抑制する策として次の2つの対策があります",
+        "水冷式注1を採用することにより、設備からの排熱を潜熱化(冷却塔の利用によって排熱を顕熱Aではなく潜熱8として放出)し、気温上昇を抑制します"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "設備機器等の更新時に対応が可能です 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "手法等により 、 導入コストには幅があります 。",
+      "implementation_notes": [],
+      "case_studies_ja": [
+        "東京スカイツリ - タウン / 地域冷暖房注 3 ( 地中熱ヒ - トボンプ )",
+        "・東京都環境局東京都建築物環境計画書制度ホ - ムへ - ジ公表建物参照 (http://www7.kankyo.metro.tokyo.jp/bulld ng/area_se ect. html)"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "low",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 31,
+          "page_end": 32,
+          "printed_page": 29,
+          "printed_page_end": 30,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p031-energy_efficiency"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "exhaust_location",
+      "name_ja": "排熱位置の工夫",
+      "name_en": "exhaust location design",
+      "category": "anthropogenic_heat",
+      "target": [
+        "building_equipment",
+        "pedestrian_space"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "office_commercial_building",
+        "plaza"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": false,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "(1)空調やその他の設備機器等の高効率化や再生可能エネルギ-利用(自然採光、自然通風、太陽光、地中熱など)による省エネルギ-化によって排熱を減らします",
+        "(2)空調設備からの排熱を緩和し、気温上昇を抑制する策として次の2つの対策があります",
+        "水冷式注1を採用することにより、設備からの排熱を潜熱化(冷却塔の利用によって排熱を顕熱Aではなく潜熱8として放出)し、気温上昇を抑制します"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "設備機器等の更新時に対応が可能です 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "手法等により 、 導入コストには幅があります 。",
+      "implementation_notes": [],
+      "case_studies_ja": [
+        "東京スカイツリ - タウン / 地域冷暖房注 3 ( 地中熱ヒ - トボンプ )",
+        "・東京都環境局東京都建築物環境計画書制度ホ - ムへ - ジ公表建物参照 (http://www7.kankyo.metro.tokyo.jp/bulld ng/area_se ect. html)"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "low",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 31,
+          "page_end": 32,
+          "printed_page": 29,
+          "printed_page_end": 30,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p031-energy_efficiency"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "building_configuration",
+      "name_ja": "建物形状の工夫",
+      "name_en": "building form and configuration",
+      "category": "building_form",
+      "target": [
+        "building",
+        "urban_block"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "office_commercial_building",
+        "urban_block"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": false
+      },
+      "mechanisms": [
+        "reduce_surface_heat_storage",
+        "improve_ventilation"
+      ],
+      "expected_effects": [
+        "風の通りがよくなることで建物等の蓄熱を抑制するため 、 緩和策として有効です 。"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "大規模開発などの場合は 、 建物が周辺において 、 歩行者に悪影響 ( 強風 ) を及ぼさないよう配慮が必要です 。 第 Ⅱ"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "規模等により 、 導入コストには幅があります 。",
+      "implementation_notes": [
+        "建物の建設時には 、 建築物の配置や形状が夏の主風向の通風を妨けない等 、 風向や風の通り道に配慮して建物配置や形状を工夫するなどの対策です 。",
+        "・連続したオープンスへ - ス ( 開放的な空間 ) の創出により風を都市空間に流入させることが重要となります 。 ※ 見付幅比 = bc / ad 夏の主風ロ ad. 最大敷地幅 bc",
+        "・見付幅図 4-6 風に対する見付け幅の考え方"
+      ],
+      "case_studies_ja": [
+        "大手町",
+        "・丸の内",
+        "・有楽町地区「風の道」 1 6",
+        "・東京都環境局東京都建築物環境計画書制度ホ - ムへ - ジ公表建物参照技 (http://www7.kankyo.metro.tokyo.jp/building/area_select.html)"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 33,
+          "page_end": 33,
+          "printed_page": 31,
+          "printed_page_end": 31,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p033-building_configuration"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "ground_greening",
+      "name_ja": "緑化",
+      "name_en": "ground and streetscape greening",
+      "category": "vegetation",
+      "target": [
+        "open_space",
+        "road",
+        "sidewalk"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "outdoor_event",
+        "park",
+        "plaza",
+        "road",
+        "urban_block",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling",
+        "reduce_surface_heat_storage"
+      ],
+      "expected_effects": [
+        "蒸散効果により 、 地表面温度の上昇を抑えるため 、 緩和策として有効です 。 また 、 緑化による緑陰や蒸散効果などにより 、 適応策としても有効です 。 日な日第面約 29 ℃ 東区を参道 . ド年リ月 0 日に時を気 29C 資料 ) 半成年度境行調を写真 4-6 街路樹による路面表面温度の上昇抑制効果 1 第 Ⅱ 部技術編 , 当 ~"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "植樹による日射遮蔽では 、 冬季に日射を妨けない落葉樹を選定する等の工夫が必要です ( 視界を遮らないよう留意 ) 。"
+      ],
+      "maintenance": [
+        "散水 、 施肥 、 落ち葉等清掃 、 除草 、 病害虫駆除 、 せん定や刈り込み等が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "植樹に要する費用は樹種や大きさ 、 植栽場所等によって異なり 、 数万円 / 本 ( 材料 1 9 ′ 2 0 + 施工費 ) 程度で 、 その他に支柱設置や灌水設備設置の費用等が必要 。 ・バ - ゴラの設置に要する費用は 、 大きさにより異なり 、 100 ~ 200 万円 / 1 基 ( 本体・上亠 ′ 1 9 のみ 、 施工費別 ) 月リ後",
+      "implementation_notes": [
+        "歩行空間に樹冠の大きな樹木を植えることにより 、 緑陰を創出する対策や 、 低木や芝生などを植えることによっ第 、 て 、 表面温度の上昇を抑制する対策です 。 緑陰を創出する対策のうち樹木以外の対策としてバ - ゴラ 1 ( 藤棚 ) などがあります 。 写真 4 ー 5 適切な樹木配列の例 1"
+      ],
+      "case_studies_ja": [
+        "東京都建設局道路表参道 ( 都道 413 号 )",
+        "・東京都環境局中防合同庁舎 ( 駐車場の緑化 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 34,
+          "page_end": 34,
+          "printed_page": 32,
+          "printed_page_end": 32,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p034-ground_greening"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "heat_reflective_surface",
+      "name_ja": "遮熱化",
+      "name_en": "heat-reflective surface treatment",
+      "category": "surface_material",
+      "target": [
+        "road",
+        "sidewalk",
+        "open_space"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "road",
+        "urban_block",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [],
+      "expected_effects": [
+        "があります。ただし、路面上の人が受ける熱環境として、路面から反射した日射量は増えます 。",
+        "・路面等の遮熱化の効果としては 、 通常のアスファルトと比較して次のことが確認されています ① 表面の温度は 、 日中日なたの場合 、 5 ~ 10 ℃ 程度低く 、 い解性価装が 3 放",
+        "・熱を軽太第の船を & 第気温より 10 ~ 15 ℃ 高くなります 。 夜間の場合 1 ~ 3 ℃ 程度低く 、 気温と同程度になります 。 人陽光 ② 体感温度は 、 路面からの赤外線放射が少なくなることでその低減に寄与します 。 ただし 、 日中の場合 、 反射した日射が歩行者に当たるため 、 場合によっては体感温度指標 SET * が通常のアスファルトより高くなることがあります 。 夕刻の場合は 、 1 ℃ 程度低いことが確認されています 。 図 4-7 遮熱性路面の概要 22 第 Ⅱ 部技術編 - 最大約 8 ℃ 低減通常の舗装遮熱性鋪装ー遮熱性舗装通常の舗装写真 4 ー 7 路面の温度変化遮熱す甫装 ( 左 ) とサーモグラフ画像 ( 右 ) 2"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "塗市型の種類の中には強い臭気を発する場合があるので 、 周辺環境への影響について配慮が必要です 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "遮熱性舗装の場合 、 数千円 / ( 材料 + 施工費 ) ・遮熱住プロックの場合 、 1 万円 / 前後 ( 材料 + 施工費 )",
+      "implementation_notes": [
+        "建物外構や道路において 、 路面等の舗装表面に当たる日射の - 部を反射させる特殊な顔料や材料を塗布し 、 又は充填する対策です 。"
+      ],
+      "case_studies_ja": [
+        "東京都建設局道路内堀通り ( 千代田区 ) 、 外堀通り ( 新宿区 、 文京区 ) など",
+        "・皇居楠公駐車場"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 35,
+          "page_end": 35,
+          "printed_page": 33,
+          "printed_page_end": 33,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p035-heat_reflective_surface"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "water_retentive_surface",
+      "name_ja": "保水化",
+      "name_en": "water-retentive surface treatment",
+      "category": "surface_material",
+      "target": [
+        "road",
+        "sidewalk",
+        "open_space"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "office_commercial_building",
+        "park",
+        "plaza",
+        "road",
+        "urban_block",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "路面等を濡れた状態に保つことで 、 気化熱を利用した表面温度の上昇抑制や冷却の効果があり 、 緩和策として有効です 。 また 、 路面温度の上昇が抑制されることにより赤外放射が低減されるため 、 適応策としても有効です 。",
+        "・路面等の保水性効果は 、 通常のアスファルトとして比較して次のことが確認されています 。 ① 路面の表面温度は 、 最大 1 0 ℃ 程度低下し 、 日陰で散水すると気温以下にまで低下することが確認されています 2 5 。 ② 体感温度として 、 体感温度指標 SET* は 、 通常のアスファルトと比べて 、 高さ 0.6m 地点では 2 ℃ 程度低いことが確認されていいます 2 第 Ⅱ 部技術編 , 当 ~ 保水性舗装密粒度黼装降水量を : ( しし目ツ .4 ( 0 0 グラフ 4 ー 2 密粒度舗装との温度差 ( 平成 15 年八重洲 )"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "路面温度の上昇を抑制する効果は 、 路面の湿潤程度により影響を受けるため 、 舗装面を湿潤な状態に保てるよう 、 給水システムの併用や定期的な散水が必要です 。"
+      ],
+      "maintenance": [
+        "舗装面の定期的な清掃 、 灌水設備の定期的な清掃",
+        "・点検が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "保水性舗装の場合 、 数千 ~ 1 万円 / 前後 ( 材料 + 施工費 ) 2 8 ′ 2 9 ・保水性プロックの場合 、 1 万円 / 前後 ( 材料 + 施工費 )",
+      "implementation_notes": [
+        "建物外構や道路の路面等において 、 保水性の高い舗装やプロック等 ( 舗装表面に吸水",
+        "・保水性能を持つ保水材を充填 ) を敷設する対策です 。 図 4 ー 8 保水性路面の概要 2 5 写真 4 ー 8 丸の内バークビルディング中庭 ( 東京都千代田区 )"
+      ],
+      "case_studies_ja": [
+        "丸の内ノ ← クビルディング中庭の給水型保水性舗装 ( 東京都千代田区 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 36,
+          "page_end": 36,
+          "printed_page": 34,
+          "printed_page_end": 34,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p036-water_retentive_surface"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "water_surface",
+      "name_ja": "水面・水辺の確保",
+      "name_en": "provision of water surfaces and waterside spaces",
+      "category": "water",
+      "target": [
+        "park",
+        "plaza",
+        "building_site"
+      ],
+      "applicable_scenarios": [
+        "park",
+        "urban_block"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "水面の気化熱により 、 表面温度の上昇抑制や冷却効果があります 。 そのため 、 表面温度低下により 、 緩和策として有効です 。 また 、 温度低下によって赤外線放射が低減されるため 、 適応策としても効果が期待できます 。 第 Ⅱ 部技術編 - 日なた面約 48 ℃ 湿潤面約 24 ℃ 日陰面約 33 ℃ ( 気温 28 」 ℃ ) 噴水施設などにおける熱画像測定 ( 港区東京ミッドタウン 2008 / 9 / 9 14 時 3 0 ) ※ 日なた面と比べて表面温度差最大 -24 ℃ 写真 4-10 東京都港区東京ミッドタウン"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "水資源の有効利用の観点から中水や下水再生水等の利用が望まれます 。",
+        "・清掃等のメンテナンスが必要です 。"
+      ],
+      "maintenance": [
+        "定期的な清掃",
+        "・点検が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "設置場所や規模により 、 導入時コストには幅があります 。",
+      "implementation_notes": [
+        "公園や駅前広場 、 建物敷地などに噴水や水景施設などを設置する対策です 。 写真 4-9 丸の内バ - クビルディング中庭"
+      ],
+      "case_studies_ja": [
+        "ザ",
+        "・ヘニンシュラ東京 ( 東京都千代田区 ) の水景施設 ( 環境省平成 19 年度ク - ルシティ中枢街区バイロット事業 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 37,
+          "page_end": 37,
+          "printed_page": 35,
+          "printed_page_end": 35,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p037-water_surface"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "shade",
+      "name_ja": "日除け",
+      "name_en": "shade",
+      "category": "shading",
+      "target": [
+        "pedestrian_space",
+        "window",
+        "open_space"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "outdoor_event",
+        "park",
+        "plaza",
+        "road",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": true,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "block_solar_radiation"
+      ],
+      "expected_effects": [
+        "日射を遮り 、 また 、 影になる地表面の温度上昇を抑制することから 、 体感温度が低減するため 、 適応策として有効です 。 また 、 地表面温度の温度上昇の抑制は 、 緩和策としても有効です 。",
+        "・温度等の低減効果について 、 日なたのアスファルト地表面の温度が 60 ℃ に達することがあるのに対して 、 日際け下の地表面の温厚は 、 気温よりも 2 ~ 3 ℃ 高い程度にまで抑制することが確認されています 。 また 、 日除け下の体感温度指標 SET* は 、 日向よりも 2 ~ 6 ℃ 程度低くなることが確認されています 3 第 Ⅱ 部技術編 , 当 ~",
+        "・窓面に日除けを設置した場合 、 建物内への日射の侵入を低減し 、 夏の冷房エネルギ - の消費量が減少して 、 空調からの排熱が減るため 、 緩和策として有効です ( 熱を「ださない」効果があります ( ※ 1 )"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "日除けの色や材質によっては 、 日除けそのものが熱くなることによる影響があるため 、 日射の反射率が高い製品を選ぶなど配慮が必要です 。",
+        "・強風時 、 積雪時には破損する可能性があり 、 管理に注意が必要となります 。"
+      ],
+      "maintenance": [
+        "定期的な点検等が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "人工日除けの設置に要する費用は 、 施工方法や形状・素材によって異なり 、 導入コストには幅があります 。",
+      "implementation_notes": [
+        "写真 4-11 店舗 ( 都内 ) 写真 4 ー 12 住宅 ( 都内 )"
+      ],
+      "case_studies_ja": [
+        "住宅におけるオ - ニングの設置 ( 東京都足立区 )",
+        "・店舗におけるオ - ニングの設置 ( 東京都台東区 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 38,
+          "page_end": 38,
+          "printed_page": 36,
+          "printed_page_end": 36,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p038-shade"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "side_surface_cooling",
+      "name_ja": "側面等の冷却",
+      "name_en": "side-surface evaporative cooling",
+      "category": "cooling_device",
+      "target": [
+        "pedestrian_space",
+        "building_wall"
+      ],
+      "applicable_scenarios": [
+        "apartment",
+        "detached_house",
+        "park"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling",
+        "improve_ventilation"
+      ],
+      "expected_effects": [
+        "人の側面 ( 冷却ル - ノ ← 、 壁面等 ) に給水し 、 気化熱を利用して表面温度を低下させ 、 人が受ける赤外放射",
+        "・体感温度の低減を図ることから 、 適応策として有効です 。 また 、 壁面等の蓄熱抑制するため 、 緩和策としても有効です 。",
+        "・通風性のあるル - バーやプロックを用いることで通過する風を冷やすことができます 。 第 Ⅱ 部技術編 -",
+        "・温度低下に関する効果として 、 次のことが確認されています ① 表面温度 2 ~ 5 ℃ 程度低下 ( 日なた設置 、 散水面 ) ② 周辺温度 1 ~ 1.5 ℃ 程度低下 ( 日陰設置 ) 冷気 ③ 体感温度指標 SET* 1 ~ 2 ℃ 低下 ( 日陰設置",
+        "・風下側 lm 、 日陰",
+        "・冷却面 )",
+        "・建物側面 ( ガラス面 、 外壁面 ) を冷却して表面温度上昇抑制した場合 、 空調設備からの排熱図 4-8 冷却丿トバーの概要 3 を抑制し 、 緩和策としても有効です ( 熱を「ださない効果」があります ( ※ 1 )"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "日射遮蔽 ( 日除けなど ) と組み合わせた方が効果を体感しやすいです 32 ( 体感温度の低下 ) 。"
+      ],
+      "maintenance": [
+        "水道代 、 定期的な保守点検が必要です 。"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "設置場所 、 手法等により 、 導入コストには幅があります 。",
+      "implementation_notes": [
+        "人の側面に 、 親水性や保水性のあるル - ノ ← やプロックなどを設置する対策です 。 写真 4-13 冷却ルーノ ← の設置例大阪府高槻市アクトモール商店街"
+      ],
+      "case_studies_ja": [
+        "エムスマ - トシティ熊谷 ( 埼玉県熊谷市 ) ( 技術事例紹介後述 p 42 参照 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 39,
+          "page_end": 39,
+          "printed_page": 37,
+          "printed_page_end": 37,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p039-side_surface_cooling"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "dry_mist",
+      "name_ja": "ドライ型（微細）ミスト",
+      "name_en": "dry fine mist",
+      "category": "cooling_device",
+      "target": [
+        "pedestrian_space",
+        "event_venue"
+      ],
+      "applicable_scenarios": [
+        "outdoor_event",
+        "park",
+        "plaza",
+        "road",
+        "warehouse_factory"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": false,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "圧力をかけて大気中へ微細なミストを噴霧し 、 噴霧直後に蒸発する際の気化熱を利用して気温等を低減し 、 適応策として有効です 。 また 、 噴霧されるミストの粒子径は 、 製品によって異なりますが 10 ~ 301-lm と微細であり 、 短時間で気化するため人が濡れを感しることなく暑さを和らけることができます 。",
+        "・微細なミストを噴霧することで 、 気温は平均 2 ℃ 、 瞬間時には 5 ℃ の低下し 、 体感温第 Ⅱ 部技術編 , 当 ~ 度指標の SET* は 2 ℃ 程度低下することが確認されています 3",
+        "・送風機と組み合わせて 、 目的とする場所を効果的に冷やす製品もあります 。 湿度や気温センサ - による制御のもと稼働するシステムを導入する場合が多く見られます 。"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "気温が 25 ℃ 以下でミストを噴霧すると不快となる傾向が確認されています 3 。 このことから - 定の気象条件の下での使用が望まれます 。 ( 例として 、 「気温 27 ℃ 以上 、 湿度 70 % 未満 、 風速 3m 未満 、 降雨なし」等 )"
+      ],
+      "maintenance": [
+        "水道代",
+        "・ボンプ電気代 、 定期的な保守点検"
+      ],
+      "cost_level": null,
+      "cost_evidence_ja": "ドライ型 ( 微細 ) ミスト設置に要する費用は製品の規模等により異なり 、 数十万 ~ 数百万円 ( 材料 + 施工費 ) ・送風ファン付ドライ型 ( 微細 ) ミストは製品や大きさにより異なり 、 数十万円 / 個前後 ( 本体のみ )",
+      "implementation_notes": [
+        "圧力をかけて水をノズルから噴射することにより 、 微細なミストを噴霧する設備を設置する対策です 。",
+        "・屋外 、 半屋外などの人通りの多いア - ケ - ドや駅前 、 イベント会場での使用が - 般的です 。 図 4-9 ドライ型 ( 微細 ) ミストの概要 3 写真 4-14 モリタウン ( 東京都昭島市 )"
+      ],
+      "case_studies_ja": [
+        "駅前広場におけるドライ型 ( 微細 ) ミスト噴霧装置の導入 ( 東京都練馬区 )",
+        "・東京ビックサイトバス停 ( 東京都江東区 ) ( 技術事例紹介後述 p .44 参照 )",
+        "・東京都内イベント会場 ( 技術事例紹介後述 p .45 参照 )"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 40,
+          "page_end": 40,
+          "printed_page": 38,
+          "printed_page_end": 38,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p040-dry_mist"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "uchimizu",
+      "name_ja": "打ち水",
+      "name_en": "uchimizu (water sprinkling)",
+      "category": "water",
+      "target": [
+        "road",
+        "open_space",
+        "building_site"
+      ],
+      "applicable_scenarios": [
+        "detached_house",
+        "outdoor_event",
+        "plaza",
+        "urban_block"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": true,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "evaporative_cooling"
+      ],
+      "expected_effects": [
+        "路面にまかれた水が蒸発した際 、 気化熱により地表面の熱が奪われ 、 地表面温度が低下することから 、 緩和策と適応策のいずれにも有効です 。",
+        "・地表面の温度低減効果としては 、 日中の打ち水後 ( 約 20 分後 ) に 、 10 ℃ 程度低下 3 4 したことが確認されています 。"
+      ],
+      "co_benefits": [],
+      "constraints": [
+        "朝",
+        "・タに打ち水を行うと涼しさが持続して効果的です 。 日中の日差しが強い時間帯に水をまいてもすぐに乾いてしまうため 、 また 、 同し理由から日なたよりも日陰にまく方が効果的です 。",
+        "・水道水は利用せずに 、 雨水や風呂の残り湯 、 中水 、 下水再生水などの二次利用水を利用しましよう 。"
+      ],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": "打ち水を行う場合は 、 規模等により費用がかかる場合があります 。",
+      "implementation_notes": [
+        "打ち水とは 、 庭先や路面などに散水 ( 打ち水 ) をして 、 夏の暑さを和らける対策です 。",
+        "・最近では各地で打ち水イベントが行われており 、 地域の連携や環境学習などの場としても利用されています 。 第 Ⅱ 部技術編 - 写真 4-15 虎の門ヒルズでの打ち水の様子 ( 平成 28 年 7 月 22 日 )"
+      ],
+      "case_studies_ja": [
+        "打ち水プロジェクト 2015 く丸の内 de 打ち水 〉 ( 大手町",
+        "・丸の内",
+        "・有楽町夏祭り 2015 実行委員会 ) など"
+      ],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 41,
+          "page_end": 41,
+          "printed_page": 39,
+          "printed_page_end": 39,
+          "chapter": "第II部 技術編",
+          "section": "第4章 4-1 各技術の紹介",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p041-uchimizu"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    },
+    {
+      "intervention_id": "heatstroke_prevention_support",
+      "name_ja": "熱中症対策（日傘・飲料水等）",
+      "name_en": "heatstroke prevention support (parasols and drinking water)",
+      "category": "public_health",
+      "target": [
+        "event_venue"
+      ],
+      "applicable_scenarios": [
+        "outdoor_event"
+      ],
+      "policy_logic": {
+        "dasanai": false,
+        "tamenai": false,
+        "morawanai": true
+      },
+      "mechanisms": [
+        "block_solar_radiation"
+      ],
+      "expected_effects": [
+        "【特徴】【対策】・日除けや、日射を遮る樹木を仮設することで快適性を向上(熱をもらわない)・ドライ型(微細)ミスト付送風機器などにより体感温度を下けることで快適性を向上(熱をもらわない)・打ち水により地表面温度を下けることで快適性を向上(熱をもらわない)・日傘の貸出しや十分な飲料水の提供などにより、熱中症を予防(熱をもらわない)・クールスポットづくり日除け緑化(レンタル樹木)ドライ型(微細)ミスト(微細ミストと送風)第—部基礎編一~よOOをらわ・その他の対策熱中症対策(日傘など)打ち水もらわためもらわ各対策の説明(第4章参照)日け→036緑化(レンタル樹木)→0.32熱中症対策→o.4「熱中症に注意!!」打ち水→0.39ドライ型(微細)ミスト→0.38など18ー"
+      ],
+      "co_benefits": [],
+      "constraints": [],
+      "maintenance": [],
+      "cost_level": null,
+      "cost_evidence_ja": null,
+      "implementation_notes": [
+        "④ 屋外イベント会場炎天下にたくさんの人が集まり長時間の行列を作るなど 、 人が熱をもらいやすい 。 【 特徴 】 【 対策 】",
+        "・日除けや 、 日射を遮る樹木を仮設することで快適性を向上 ( 熱をもらわない )",
+        "・ドライ型 ( 微細 ) ミスト付送風機器などにより体感温度を下けることで快適性を向上 ( 熱をもらわない )",
+        "・打ち水により地表面温度を下けることで快適性を向上 ( 熱をもらわない )",
+        "・日傘の貸出しや十分な飲料水の提供などにより 、 熱中症を予防 ( 熱をもらわない )",
+        "・クールスポットづくり日除け緑化 ( レンタル樹木 ) ドライ型 ( 微細 ) ミスト ( 微細ミストと送風 ) 第 — 部基礎編一 ~ よ OO をらわ",
+        "・その他の対策熱中症対策 ( 日傘など ) 打ち水もらわためもらわ各対策の説明 ( 第 4 章参照 ) 日け → 036 緑化 ( レンタル樹木 ) → 0.32 熱中症対策 → o. 4 「熱中症に注意 ! ! 」打ち水 → 0.39 ドライ型 ( 微細 ) ミスト → 0.38 など 18 ー"
+      ],
+      "case_studies_ja": [],
+      "evidence_type": "policy",
+      "extraction_confidence": "high",
+      "source_evidence": [
+        {
+          "document_id": "tokyo_summer_heat_guideline_2019",
+          "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+          "page": 20,
+          "page_end": 20,
+          "printed_page": 18,
+          "printed_page_end": 18,
+          "chapter": "第I部 基礎編",
+          "section": "第3章 夏の暑さ対策の用途別メニュー",
+          "chunk_id": "tokyo_summer_heat_guideline_2019-p020-outdoor_event"
+        }
+      ],
+      "gis_interface": {
+        "planning_problem_tags": [],
+        "candidate_variable_names": [],
+        "causal_claim": null,
+        "note": "Reserved for future model-to-policy filtering; no threshold or causal rule is asserted."
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "document_id": "tokyo_summer_heat_guideline_2019",
+  "title_ja": "夏の暑さ対策の手引",
+  "title_en": "Guide to Summer Heat Countermeasures",
+  "authority": "東京都環境局",
+  "government_level": "metropolitan",
+  "document_type": "guideline",
+  "publication_year": 2019,
+  "status": "historical_reference",
+  "geography": ["Tokyo", "Tokyo 23 wards"],
+  "topics": ["urban_heat", "heat_island", "thermal_comfort", "heat_adaptation"],
+  "language": "ja",
+  "source_url": null,
+  "extraction_options": {
+    "force_ocr": true,
+    "printed_page_offset": -2,
+    "printed_page_pdf_range": [3, 49],
+    "reason": "The PDF embedded text contains invisible/shared-object bleed from adjacent pages; rendered-page OCR preserves page boundaries."
+  },
+  "notes": "Benchmark classification supplied for this project. Status is not a legal determination of current validity."
+}

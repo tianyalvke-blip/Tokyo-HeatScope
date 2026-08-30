@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chunk.schema.json",
+  "title": "Semantic policy chunk",
+  "type": "object",
+  "required": ["chunk_id", "document_id", "chapter", "section", "subsection", "knowledge_type", "scenario", "topics", "interventions", "policy_logic", "text_ja", "text_en_summary", "page_start", "page_end", "source_file", "evidence_type", "extraction_confidence", "provenance", "retrieval_text"],
+  "properties": {
+    "chunk_id": {"type": "string", "minLength": 1},
+    "document_id": {"type": "string", "minLength": 1},
+    "chapter": {"type": "string"},
+    "section": {"type": "string"},
+    "subsection": {"type": "string"},
+    "knowledge_type": {"enum": ["policy_principle", "scenario_guidance", "intervention", "technical_guidance", "implementation_constraint", "cost", "maintenance", "case_study", "background", "definition"]},
+    "scenario": {"type": "array", "items": {"type": "string"}},
+    "topics": {"type": "array", "items": {"type": "string"}},
+    "interventions": {"type": "array", "items": {"type": "string"}},
+    "policy_logic": {"type": "array", "items": {"enum": ["dasanai", "tamenai", "morawanai"]}},
+    "text_ja": {"type": "string", "minLength": 1},
+    "text_en_summary": {"type": "string"},
+    "page_start": {"type": "integer", "minimum": 1},
+    "page_end": {"type": "integer", "minimum": 1},
+    "source_file": {"type": "string", "minLength": 1},
+    "evidence_type": {"enum": ["policy", "model", "scientific_literature", "observed_data", "derived_analysis"]},
+    "extraction_confidence": {"enum": ["high", "medium", "low"]},
+    "provenance": {"type": "object", "required": ["document_id", "source_file", "page_start", "page_end", "chapter", "section", "chunk_id"]},
+    "retrieval_text": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}
+

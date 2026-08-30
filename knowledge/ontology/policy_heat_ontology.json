@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "preserve_source_terms": true,
+  "heat_strategies": {
+    "dasanai": {"name_ja": "熱をださない", "name_en": "avoid releasing heat"},
+    "tamenai": {"name_ja": "熱をためない", "name_en": "avoid storing heat"},
+    "morawanai": {"name_ja": "熱をもらわない", "name_en": "avoid receiving heat"}
+  },
+  "intervention_families": {
+    "vegetation": ["green_roof", "green_wall", "street_tree", "ground_greening"],
+    "water": ["water_surface", "uchimizu"],
+    "surface_material": ["reflective_surface", "water_retentive_surface", "retroreflective_surface"],
+    "building_envelope": ["building_insulation", "window_shading"],
+    "building_form": ["building_configuration"],
+    "ventilation": ["ventilation_path"],
+    "anthropogenic_heat": ["waste_heat_reduction", "exhaust_location"],
+    "shading": ["shade", "tree_shade"],
+    "cooling_device": ["dry_mist"],
+    "energy": ["energy_efficiency"],
+    "public_health": ["heatstroke_prevention"]
+  },
+  "gis_interface": {
+    "variables": ["Avg_Height", "Height_Variance", "BCR", "Road_Length", "Road_Ratio", "Water_Ratio", "Forest_Ratio", "NDVI", "Elevation", "Dist_to_Coast", "LCZ", "Day_LST", "Night_LST", "LISA_cluster"],
+    "causal_rules": [],
+    "recommendation_thresholds": [],
+    "note": "Reserved interface only. Model evidence and policy evidence must remain separate."
+  }
+}
+

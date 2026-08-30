@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "intervention.schema.json",
+  "title": "Policy intervention",
+  "type": "object",
+  "required": ["intervention_id", "name_ja", "name_en", "category", "target", "applicable_scenarios", "policy_logic", "mechanisms", "expected_effects", "co_benefits", "constraints", "maintenance", "cost_level", "cost_evidence_ja", "implementation_notes", "evidence_type", "extraction_confidence", "source_evidence", "gis_interface"],
+  "properties": {
+    "intervention_id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+    "name_ja": {"type": "string", "minLength": 1},
+    "name_en": {"type": "string"},
+    "category": {"type": "string"},
+    "target": {"type": "array", "items": {"type": "string"}},
+    "applicable_scenarios": {"type": "array", "items": {"type": "string"}},
+    "policy_logic": {"type": "object", "required": ["dasanai", "tamenai", "morawanai"], "properties": {"dasanai": {"type": "boolean"}, "tamenai": {"type": "boolean"}, "morawanai": {"type": "boolean"}}},
+    "mechanisms": {"type": "array", "items": {"type": "string"}},
+    "expected_effects": {"type": "array", "items": {"type": "string"}},
+    "co_benefits": {"type": "array", "items": {"type": "string"}},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "maintenance": {"type": "array", "items": {"type": "string"}},
+    "cost_level": {"type": ["string", "null"]},
+    "cost_evidence_ja": {"type": ["string", "null"]},
+    "implementation_notes": {"type": "array", "items": {"type": "string"}},
+    "evidence_type": {"const": "policy"},
+    "extraction_confidence": {"enum": ["high", "medium", "low"]},
+    "source_evidence": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["document_id", "source_file", "page", "chapter", "section", "chunk_id"]}},
+    "gis_interface": {"type": "object", "required": ["planning_problem_tags", "candidate_variable_names", "causal_claim"]}
+  },
+  "additionalProperties": true
+}
+

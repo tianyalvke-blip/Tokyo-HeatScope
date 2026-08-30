@@ -1,0 +1,104 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# Python
+.ipynb_checkpoints
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data files - exclude all large data files
+*.duckdb
+*.wal
+*.vrt
+*.parquet
+*.geojson
+*.gpkg
+*.pmtiles
+*.zip
+*.shp
+*.shx
+*.dbf
+*.prj
+*.sbn
+*.sbx
+*.shp.xml
+*.cpg
+*.qix
+
+# Ignore entire data directory except scripts and docs
+data/**/*
+!data/**/*.sh
+!data/**/*.md
+!data/**/*.py
+# Policy ingestion keeps small input contracts/metadata in Git; source PDFs
+# remain local and immutable.
+!data/policy_sources/
+!data/policy_sources/**/*.md
+!data/policy_sources/**/*.json
+data/policy_sources/**/*.pdf
+
+# Editor config
+.vscode/
+.idea/
+
+# Secrets and local config
+.env
+config.json
+config.local.json
+secrets.yaml
+
+# Node / VitePress
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Local runtime files
+*.log
+*.pid
+*.block
+*.tmp
+duck.db
+.streamlit
+
+# Superpowers brainstorming / mockups
+.superpowers/
+docs/superpowers/
+
+# Git worktrees
+.worktrees/
+coverage/
+
+# Claude Code (local, machine-specific). Shared project config such as
+# .claude/settings.json or .claude/commands/ can still be committed.
+.claude/settings.local.json
+.claude/worktrees/
+
+# GLEN LST Agent local runtime
+server/*.log
+server/*.err.log
+server/.pids
+server/shot_*.png
+server/ui_*.png
+
+# Python venv
+.venv/
+
+# Spatial tool caches (regenerable)
+server/cache/
+
+# Concurrent-process backup (preserved, not part of this branch)
+.backup_concurrent_*/
+
+# Random Forest models (regenerable via scripts/train_rf_models.py)
+models/
+
+# Policy ingestion caches (regenerable via OCR)
+tmp/
+
+# Source policy PDF (user-provided input; not project code)
+heat_island.files.pdf

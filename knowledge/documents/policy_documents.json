@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "documents": [
+    {
+      "document_id": "tokyo_summer_heat_guideline_2019",
+      "title_ja": "夏の暑さ対策の手引",
+      "title_en": "Guide to Summer Heat Countermeasures",
+      "authority": "東京都環境局",
+      "government_level": "metropolitan",
+      "document_type": "guideline",
+      "publication_year": 2019,
+      "status": "historical_reference",
+      "geography": [
+        "Tokyo",
+        "Tokyo 23 wards"
+      ],
+      "topics": [
+        "urban_heat",
+        "heat_island",
+        "thermal_comfort",
+        "heat_adaptation"
+      ],
+      "language": "ja",
+      "source_file": "F:\\GLEN_LST_AGENT\\heat_island$regulation.files$atsusa_tebiki_h30kaitei.pdf",
+      "source_sha256": "c54881864f4a54935526abd961673b23d91de0290004a043a658e9f0365b24dd",
+      "source_url": null,
+      "pages": 50,
+      "processed_at": "2026-08-30T03:10:51.532880+00:00",
+      "notes": "Benchmark classification supplied for this project. Status is not a legal determination of current validity.",
+      "extraction": {
+        "parser": "poppler_windows_ocr_ja",
+        "embedded_text_preserved": true,
+        "ocr_language": "ja",
+        "warnings": [
+          "Embedded text quality was 0.87; used rendered-page Japanese OCR.",
+          "Rendered-page OCR was required by the document metadata to prevent embedded-text cross-page bleed."
+        ],
+        "source_options": {
+          "force_ocr": true,
+          "printed_page_offset": -2,
+          "printed_page_pdf_range": [
+            3,
+            49
+          ],
+          "reason": "The PDF embedded text contains invisible/shared-object bleed from adjacent pages; rendered-page OCR preserves page boundaries."
+        }
+      }
+    }
+  ]
+}

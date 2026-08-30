@@ -1,0 +1,12 @@
+{
+  "type": "Catalog",
+  "id": "glen-tokyo-lst-catalog",
+  "title": "GLEN Tokyo LST",
+  "description": "Tokyo 200 m day/night LST grid catalog (local).",
+  "links": [
+    {
+      "rel": "self",
+      "href": "data/catalog.json"
+    }
+  ]
+}
