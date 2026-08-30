@@ -34,7 +34,13 @@ export class Agent {
         // at a checkpoint. null when no turn is suspended.
         this.suspendedTurn = null;
         this.autoApprove = config.auto_approve ?? true;
-        this.sessionId = crypto.randomUUID();
+        this.sessionId = (crypto.randomUUID && typeof crypto.randomUUID === 'function')
+            ? crypto.randomUUID()
+            : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         this.abortController = null;
 
         // Event callbacks (set by chat-ui.js)
