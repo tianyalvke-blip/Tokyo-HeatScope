@@ -44,8 +44,19 @@ def _default(o):
         return o.to_dict("records")
     raise TypeError("not JSON-serializable: " + repr(type(o)))
 
+def _clean(o):
+    """Recursively round floats to 6 significant digits so results don't
+    carry binary floating-point noise (e.g. 0.4669969999999992)."""
+    if isinstance(o, float):
+        return round(float(o), 6)
+    if isinstance(o, (list, tuple)):
+        return [_clean(x) for x in o]
+    if isinstance(o, dict):
+        return {k: _clean(v) for k, v in o.items()}
+    return o
+
 def _emit(payload):
-    print("__GLEN_RESULT__ " + json.dumps(payload, default=_default, ensure_ascii=False))
+    print("__GLEN_RESULT__ " + json.dumps(_clean(payload), default=_default, ensure_ascii=False))
 
 try:
     exec(compile(CODE, "<user_code>", "exec"), NS)

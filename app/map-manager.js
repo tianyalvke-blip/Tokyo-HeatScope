@@ -1640,6 +1640,11 @@ export class MapManager {
         if (typeof value === 'number' && (lf.includes('acres') || lf.includes('area'))) {
             return value.toLocaleString('en-US', { maximumFractionDigits: 1 });
         }
+        // Plain numeric fields: round to 3 decimals to hide binary floating
+        // point noise (e.g. 0.4669969999999992) while keeping real precision.
+        if (typeof value === 'number') {
+            return Number(value.toFixed(3)).toString();
+        }
         return value;
     }
 
