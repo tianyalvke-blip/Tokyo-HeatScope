@@ -1132,24 +1132,43 @@ details[open]>.query-summary-btn::before {
 }
 
 /* ── Mobile optimization ───────────────────────────────────────
-   Phones: chat stays open but leaves a strip of map visible on the
-   right so users see the map is there; collapse hides it entirely.
-   Larger touch targets, no hover-only interactions, keyboard-safe. */
+   Phones: the chat becomes a bottom drawer — full-width, docked to
+   the bottom (~68% viewport height), slides down to hide so the map
+   stays fully visible. Tap targets are thumb-sized; the on-screen
+   keyboard never overlaps the input. */
 @media (max-width: 700px) {
     #chat-container {
-        width: min(88vw, 360px);
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
         min-width: 0;
-        max-width: 88vw;
+        height: 68vh;
+        max-height: 85vh;
+        border-radius: 16px 16px 0 0;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-bottom: none;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+        transition: transform 0.32s ease;
     }
     #chat-container.collapsed {
-        transform: translateX(-100%);
+        transform: translateY(100%);
+        height: 68vh !important;
     }
-    /* Bigger reopen tab — thumb-friendly */
+    /* Reopen tab now sits at the bottom-center of the screen. */
     #chat-reopen {
-        width: 32px;
-        height: 96px;
-        font-size: 16px;
-        border-radius: 0 12px 12px 0;
+        top: auto;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 72px;
+        height: 34px;
+        border-radius: 12px 12px 0 0;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-bottom: none;
+        box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.2);
     }
     /* No drag-resize on touch */
     .chat-resize-handle {

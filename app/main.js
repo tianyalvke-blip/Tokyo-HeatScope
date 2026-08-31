@@ -154,17 +154,23 @@ async function main() {
     resultLayerManager.refreshRegistry().catch(err =>
         console.warn('[main] Result registry refresh failed:', err.message));
 
-    /* ── 3b. Map padding for the left-docked chat panel ────────────────
-     * When the chat is expanded it covers the left of the map. Apply
-     * asymmetric left padding so fitBounds / zoom / flyTo center in the
-     * *visible* map area instead of behind the panel. Collapsing resets it. */
+    /* ── 3b. Map padding for the chat panel ─────────────────────────────
+     * Desktop (floating): the chat docks to the left, so pad the map on the
+     * left. Mobile (<700px): the chat becomes a bottom drawer, so pad the map
+     * at the bottom instead. Collapsing resets the padding to 0. */
     const chatEl = document.getElementById('chat-container');
+    const isMobileLayout = () => window.innerWidth < 700;
     const syncMapPadding = () => {
         if (!chatEl) return 0;
         const w = chatEl.classList.contains('collapsed') ? 0 : (chatEl.offsetWidth || 0);
-        mapManager.map.setPadding({ top: 0, bottom: 0, left: w, right: 0 }, { duration: 300 });
-        // Drive the bottom-left zoom control's offset so it always sits just
-        // right of the chat panel and follows it during resize/collapse.
+        if (isMobileLayout()) {
+            const h = chatEl.classList.contains('collapsed') ? 0 : (chatEl.offsetHeight || 0);
+            mapManager.map.setPadding({ top: 0, bottom: h, left: 0, right: 0 }, { duration: 300 });
+        } else {
+            mapManager.map.setPadding({ top: 0, bottom: 0, left: w, right: 0 }, { duration: 300 });
+        }
+        // Drive the zoom control's offset so it clears the chat panel and
+        // follows it during resize/collapse.
         document.documentElement.style.setProperty('--chat-width', w + 'px');
         return w;
     };

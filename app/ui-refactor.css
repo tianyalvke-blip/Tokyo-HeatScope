@@ -618,10 +618,10 @@ body.sidebar-mode #sidebar-header h3 {
 
 @media (max-width: 760px) {
     #chat-container {
-        width: min(88vw, 360px) !important;
+        width: 100%;
         min-width: 0;
-        max-width: 88vw;
-        border-radius: 0 16px 16px 0;
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
     }
 
     #menu {
@@ -639,17 +639,16 @@ body.sidebar-mode #sidebar-header h3 {
         border-radius: 15px;
     }
 
-    /* On phones the chat panel is collapsible; when it's open it covers the
-       left side, so nudge the map zoom/nav controls clear of it. When the
-       chat is collapsed the whole map is visible and controls sit at the
-       corner as usual. */
+    /* On phones the chat is a bottom drawer; nudge the map nav controls so
+       they sit above the drawer's top edge when it's open. */
     .maplibregl-ctrl-bottom-left,
     .mapboxgl-ctrl-bottom-left {
-        left: calc(var(--chat-width, 0px) + 8px) !important;
+        left: 8px !important;
+        bottom: 8px;
     }
     .maplibregl-ctrl-top-left,
     .mapboxgl-ctrl-top-left {
-        left: calc(var(--chat-width, 0px) + 8px) !important;
+        left: 8px !important;
     }
 
     /* Layer menu toggle & legend get safe-area insets on notched phones. */
