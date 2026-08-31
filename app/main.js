@@ -348,30 +348,31 @@ async function main() {
     /* ── 6. Build system prompt ────────────────────────────────────────── */
     const basePrompt = await basePromptP;   // fetch was kicked off at step 1c
     const catalogText = catalog.generatePromptCatalog();
-    let systemPrompt = basePrompt + '\n\n' + catalogText;
+    const baseSystemPrompt = basePrompt + '\n\n' + catalogText;
 
-    // Read server-provided prompt (if any)
+    /* ── 7. Create agent + UI early (non-blocking welcome) ───────────────
+     * Create the agent and chat UI *before* the slower MCP prompt fetch so
+     * the welcome message renders immediately. The MCP system prompt is
+     * applied via setSystemPrompt() once it arrives below. */
+    const agent = new Agent(appConfig, toolRegistry);
+    agent.setSystemPrompt(baseSystemPrompt);
+    const ui = new ChatUI(agent, appConfig, layoutRefs.chatMount);
+    console.log('[main] Agent + UI ready (welcome rendered, prompt pending)');
+
+    // Read server-provided prompt (if any) and update the agent's prompt.
     try {
         const prompts = await mcp.listPrompts();
         const analyst = prompts?.find(p => p.name === 'geospatial-analyst');
         if (analyst) {
             const content = await mcp.getPrompt(analyst.name);
             if (content) {
-                systemPrompt += '\n\n' + content;
+                agent.setSystemPrompt(baseSystemPrompt + '\n\n' + content);
                 console.log('[main] Loaded MCP geospatial-analyst prompt');
             }
         }
     } catch (e) {
         console.warn('[main] No MCP prompts available:', e.message);
     }
-
-    /* ── 7. Create agent ──────────────────────────────────────────────── */
-    const agent = new Agent(appConfig, toolRegistry);
-    agent.setSystemPrompt(systemPrompt);
-    console.log('[main] Agent ready');
-
-    /* ── 8. Create UI ─────────────────────────────────────────────────── */
-    const ui = new ChatUI(agent, appConfig, layoutRefs.chatMount);
 
     /* ── 3f. UI language switcher (EN / JA / ZH) ─────────────────────────
      * Switches only the static chrome: branding, placeholder, buttons, tab
