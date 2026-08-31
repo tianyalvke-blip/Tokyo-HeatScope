@@ -677,6 +677,12 @@ body.sidebar-mode #sidebar-header h3 {
         padding: 0;
         margin: 0;
     }
+    /* Hide any free-floating legend on mobile — the legend now lives
+       inline inside the layer panel, so a detached #legend on <body>
+       must not show. (#legend.inline inside the slot is unaffected.) */
+    body > #legend {
+        display: none !important;
+    }
     #legend.inline #legend-header {
         display: none;
     }
