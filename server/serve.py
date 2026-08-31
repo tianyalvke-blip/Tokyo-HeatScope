@@ -101,15 +101,15 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
     def _cache_control(self, resolved):
         """Cache-Control: long for versioned/static assets, else no-cache.
 
-        vendor/* (versioned libs) and the dataset geojson (a build artifact
-        regenerated only by scripts/prepare_data.py) are safe to cache hard —
-        they don't change between deploys and caching them is what lets many
-        concurrent visitors reuse the same bytes instead of re-downloading.
+        vendor/* (versioned libs) and the stable 200 m dataset geojson (a
+        build artifact) are safe to cache hard. The 400 m aggregate is still
+        iterating, so it stays no-cache to avoid stale-grid confusion.
         Everything else stays no-cache for dev-friendliness.
         """
         rel = str(resolved).replace('\\', '/')
-        if ('/vendor/' in rel or '/vendor\\' in rel
-                or rel.endswith('.geojson')):
+        if '/vendor/' in rel or '/vendor\\' in rel:
+            return 'public, max-age=86400'
+        if rel.endswith('tokyo_lst_grid.geojson'):
             return 'public, max-age=86400'
         return 'no-cache'
 
