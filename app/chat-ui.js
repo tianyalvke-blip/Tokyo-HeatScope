@@ -351,9 +351,9 @@ export class ChatUI {
 
         let html = '';
         if (welcome.message) {
-            const lines = welcome.message.split('\n');
+            const lines = welcome.message.split('\n').filter(l => l !== '');
             const title = lines[0];
-            const body = lines.slice(1).join('<br>');
+            const body = lines.slice(1).join('<br><br>');
             if (title) {
                 html += `<p class="welcome-title">${this.escapeHtml(title)}</p>`;
             }

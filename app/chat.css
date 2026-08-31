@@ -157,7 +157,7 @@ body:has(#chat-container.collapsed) #chat-reopen {
 
 .chat-brand .brand-title {
     margin: 0;
-    font-size: 21px;
+    font-size: 24px;
     font-weight: 780;
     letter-spacing: -0.02em;
 }
