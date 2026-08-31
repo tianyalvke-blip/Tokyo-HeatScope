@@ -152,7 +152,8 @@
       "title": "Tokyo LST grid (GeoJSON)",
       "type": "application/geo+json",
       "href": "data/tokyo_lst_grid.geojson",
-      "description": "200 m grid polygons with day_lst / night_lst and urban covariates (map display)."
+      "preview": "data/tokyo_lst_grid_400m.geojson",
+      "description": "200 m grid polygons with day_lst / night_lst and urban covariates (map display). A 400 m preview is shown first for progressive loading."
     },
     "grid-parquet": {
       "title": "Tokyo LST grid (Parquet)",

@@ -250,6 +250,14 @@ export class MapManager {
                     this.map.addSource(v.sourceId, v.source);
                 }
 
+                // Progressive enhancement for geojson: when a low-res preview
+                // url is configured, start with it (fast) and swap to the full
+                // resolution geojson once the preview source has rendered. The
+                // swap is one-way (full stays full) and happens per version.
+                if (v.type === 'vector' && v.sourceType === 'geojson' && v.previewUrl) {
+                    this._enablePreviewUpgrade(v.sourceId, v.source, v.previewUrl);
+                }
+
                 // Build MapLibre layer
                 const layerDef = {
                     id: vMapLayerId,
@@ -504,6 +512,44 @@ export class MapManager {
         } catch (err) {
             console.error(`[Map] Failed to init trajectory animation for ${layerId}:`, err);
         }
+    }
+
+    /**
+     * Progressive enhancement for a geojson source: load a lightweight
+     * preview first, then swap to the full-resolution geojson once the
+     * preview has rendered. One-way — after upgrade the full source stays.
+     *
+     * @param {string} sourceId
+     * @param {Object} source  the geojson source config (type/data)
+     * @param {string} previewUrl
+     */
+    _enablePreviewUpgrade(sourceId, source, previewUrl) {
+        if (!this.map || !source) return;
+        let upgraded = false;
+
+        // Start from the preview instead of the full url.
+        try {
+            const src = this.map.getSource(sourceId);
+            if (src && typeof src.setData === 'function') {
+                src.setData(previewUrl);
+            }
+        } catch { /* fall through */ }
+
+        const onData = (e) => {
+            if (upgraded) return;
+            if (e.sourceId !== sourceId || e.isSourceLoaded !== true) return;
+            upgraded = true;
+            this.map.off('sourcedata', onData);
+            try {
+                const src = this.map.getSource(sourceId);
+                if (src && typeof src.setData === 'function' && source.data) {
+                    src.setData(source.data); // full-resolution url
+                }
+            } catch (err) {
+                console.warn(`[Map] Preview upgrade failed for ${sourceId}:`, err.message);
+            }
+        };
+        this.map.on('sourcedata', onData);
     }
 
     // ---- Layer Visibility ----

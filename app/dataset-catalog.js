@@ -332,6 +332,9 @@ export class DatasetCatalog {
                                 layerType: 'vector',
                                 sourceType: 'geojson',
                                 url: vAsset.href,
+                                // Optional low-res preview shown first for progressive
+                                // enhancement: load this fast, swap to full url when ready.
+                                previewUrl: vAsset.preview || null,
                                 description: vAsset.description || '',
                             });
                         }
@@ -736,6 +739,7 @@ export class DatasetCatalog {
                                 type: 'vector',
                                 sourceId: `src-${ds.id.replace(/[^a-zA-Z0-9]/g, '-')}-${srcKey}`,
                                 source: { type: 'geojson', data: v.url },
+                                previewUrl: v.previewUrl || null,
                             };
                         } else if (v.layerType === 'vector') {
                             const srcKey = v.assetId.replace(/[^a-zA-Z0-9]/g, '-');
