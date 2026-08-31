@@ -19,6 +19,8 @@ Environment overrides:
                           F:\\TokyoLSTAgent\\geo-app\\basemap)
 """
 
+import gzip
+import io
 import os
 import re
 import socket
@@ -90,6 +92,29 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def _gzip_response(self, resolved, ctype):
+        """Serve a text/json file gzipped if the client accepts gzip.
+
+        Only used for full-file responses (no Range header). Returns a
+        (bytes, headers) tuple or None to fall through to plain serving.
+        """
+        if ctype not in ('application/json', 'application/geo+json', 'text/html', 'text/css', 'application/javascript', 'text/javascript'):
+            return None
+        accept = self.headers.get('Accept-Encoding', '')
+        if 'gzip' not in accept:
+            return None
+        try:
+            raw = resolved.read_bytes()
+        except OSError:
+            return None
+        buf = io.BytesIO()
+        with gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=6) as gz:
+            gz.write(raw)
+        gzipped = buf.getvalue()
+        if len(gzipped) >= len(raw):
+            return None
+        return gzipped, {'Content-type': ctype, 'Content-Encoding': 'gzip'}
+
     def send_head(self):
         path = self.translate_path(self.path)
         resolved = self._resolve(self.path)
@@ -98,6 +123,20 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             return None
 
         ctype = self.guess_type(str(resolved))
+        gz = None
+        if not self.headers.get("Range"):
+            gz = self._gzip_response(resolved, ctype)
+        if gz is not None:
+            body, extra = gz
+            self.send_response(200)
+            for k, v in extra.items():
+                self.send_header(k, v)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
+            self.send_header("Vary", "Accept-Encoding")
+            self.end_headers()
+            return body
+
         try:
             f = open(resolved, "rb")
         except OSError:
@@ -149,6 +188,21 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
                     chunk = f.read(length)
                 self.wfile.write(chunk)
                 return
+
+        gz = None
+        if not range_header:
+            gz = self._gzip_response(resolved, ctype)
+        if gz is not None:
+            body, extra = gz
+            self.send_response(200)
+            for k, v in extra.items():
+                self.send_header(k, v)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
+            self.send_header("Vary", "Accept-Encoding")
+            self.end_headers()
+            self.wfile.write(body)
+            return
 
         self.send_response(200)
         self.send_header("Content-type", ctype)
