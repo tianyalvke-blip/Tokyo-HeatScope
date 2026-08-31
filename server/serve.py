@@ -76,7 +76,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
 
     def send_cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS")
         self.send_header(
             "Access-Control-Allow-Headers",
             "Range, Content-Type, Accept, Mcp-Session-Id, Mcp-Protocol-Version, X-Api-Key, Authorization",
@@ -303,6 +303,72 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
                 if not chunk:
                     break
                 self.wfile.write(chunk)
+
+    def do_POST(self):
+        # /api/llm — server-side LLM proxy so the browser never sees the API
+        # key. The operator's key lives in the DEEPSEEK_API_KEY environment
+        # variable (not in any client-served file); visitors talk to this
+        # endpoint and the server forwards to the LLM provider.
+        if self.path.startswith("/api/llm"):
+            self._proxy_llm()
+            return
+        self.send_error(404, "Not found")
+
+    def _proxy_llm(self):
+        import urllib.request
+
+        key = os.environ.get("DEEPSEEK_API_KEY", "")
+        if not key:
+            err = json.dumps({"error": {"message": "LLM proxy not configured (no server key)"}})
+            body = err.encode("utf-8")
+            self.send_response(503)
+            self.send_header("Content-type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            payload = self.rfile.read(length)
+        except Exception:
+            payload = b"{}"
+
+        # Endpoint: OpenAI-compatible /chat/completions on DeepSeek.
+        # The browser may send its own model/params; the key is added here.
+        target = os.environ.get("DEEPSEEK_ENDPOINT", "https://api.deepseek.com") + "/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + key,
+        }
+        stream = b'"stream":true' in payload
+        if stream:
+            headers["Accept"] = "text/event-stream"
+        try:
+            req = urllib.request.Request(target, data=payload, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                self.send_response(resp.status)
+                self.send_header("Content-Type", resp.headers.get("Content-Type", "application/json"))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Access-Control-Expose-Headers", "*")
+                self._cache_set = True
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+        except Exception as exc:
+            err = json.dumps({"error": {"message": f"LLM proxy failed: {exc}"}})
+            body = err.encode("utf-8")
+            self.send_response(502)
+            self.send_header("Content-type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(body)
 
     def log_message(self, fmt, *args):
         sys.stderr.write("[serve] %s\n" % (fmt % args))

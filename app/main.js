@@ -54,6 +54,20 @@ async function main() {
         // Flag for ChatUI to show settings button
         appConfig._userProvidedMode = true;
     }
+    // Server-side LLM proxy mode: no client key needed — the operator's key
+    // lives on the server (/api/llm). Build a minimal model list so the agent
+    // has a model to select even without any user-provided or config.json key.
+    if (appConfig.llm?.proxy && !appConfig.llm_models) {
+        const ep = appConfig.llm.default_endpoint || 'https://api.deepseek.com';
+        appConfig.llm_models = (appConfig.llm.models || []).map(m => ({
+            value: m.value,
+            label: m.label || m.value,
+            endpoint: ep,
+            api_key: 'server-proxy',
+            temperature: m.temperature ?? 0,
+        }));
+        appConfig.llm_model = appConfig.llm_models[0]?.value || appConfig.llm_model;
+    }
     console.log('[main] Config loaded');
 
     /* ── 1b. Build UI chrome (layout-manager owns floating vs sidebar) ─── */

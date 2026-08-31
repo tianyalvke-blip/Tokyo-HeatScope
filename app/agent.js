@@ -23,6 +23,11 @@ export class Agent {
         this.systemPrompt = '';
         this.messages = [];
         this.selectedModel = config.llm_model || config.llm_models?.[0]?.value || 'default';
+        // Server-side LLM proxy mode: when enabled, the browser never holds an
+        // API key — chat requests go to our own /api/llm endpoint which injects
+        // the operator's key server-side. Visits can then use the app without
+        // entering a key, and the key is never exposed to clients.
+        this.llmProxy = config.llm?.proxy === true || config.llm_proxy === true;
         // Checkpoint thresholds: how many *remote* tool-call rounds before the
         // agent pauses to report progress and ask to continue. Auto-approve uses
         // the tighter value (the checkpoint is the user's periodic gate); manual
@@ -426,13 +431,23 @@ export class Agent {
         }, timeoutMs);
 
         try {
-            const response = await fetch(endpoint, {
+            // In proxy mode the browser posts to our own server which holds the
+            // key — no Authorization header, relative /api/llm path. Otherwise
+            // it calls the provider directly with the user-supplied key.
+            const proxyMode = this.llmProxy;
+            const url = proxyMode ? '/api/llm' : endpoint;
+            const headers = { 'Content-Type': 'application/json' };
+            if (!proxyMode) headers['Authorization'] = `Bearer ${modelConfig.api_key}`;
+            let bodyPayload = payload;
+            if (proxyMode) {
+                // Strip the client session id and let the proxy set model.
+                bodyPayload = { ...payload };
+                delete bodyPayload.user;
+            }
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${modelConfig.api_key}`,
-                },
-                body: JSON.stringify(payload),
+                headers,
+                body: JSON.stringify(bodyPayload),
                 signal: internal.signal,
             });
 

@@ -21,7 +21,8 @@
     },
 
     "llm": {
-        "user_provided": true,
+        "user_provided": false,
+        "proxy": true,
         "default_endpoint": "https://api.deepseek.com",
         "models": [
             { "value": "deepseek-v4-flash", "label": "DeepSeek v4 flash" }
