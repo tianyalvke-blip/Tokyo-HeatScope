@@ -23,7 +23,7 @@ const BASEMAPS = {
             tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}'],
             tileSize: 256,
             maxzoom: 16,
-            attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA'
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; National Geographic'
         },
         terrain: true
     },
@@ -33,7 +33,7 @@ const BASEMAPS = {
             tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
             tileSize: 256,
             maxzoom: 19,
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; World Imagery'
         },
         terrain: true
     },
@@ -164,7 +164,7 @@ export class MapManager {
 
         this.map.addControl(new maplibregl.AttributionControl({
             compact: false,
-            customAttribution: '&copy; OpenStreetMap contributors · Esri (NatGeo/Satellite) · Protomaps',
+            customAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · <a href="https://protomaps.com/">Protomaps</a>',
         }), 'top-left');
         this.map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
 
