@@ -76,7 +76,18 @@ async function main() {
         if ((mcpU.hostname === '127.0.0.1' || mcpU.hostname === 'localhost')
             && pageU.hostname !== '127.0.0.1' && pageU.hostname !== 'localhost') {
             mcpU.hostname = pageU.hostname;
-            mcpU.port = mcpU.port || pageU.port || (pageU.protocol === 'https:' ? '443' : '80');
+            // When the page is served over HTTPS (reverse-proxied by Caddy /
+            // nginx), the MCP endpoint is reachable on the same origin at
+            // /mcp — forcing the bare port would create a mixed-content
+            // request the browser blocks. Only fall back to a port override
+            // for plain-HTTP LAN deployments.
+            if (pageU.protocol === 'https:') {
+                mcpU.protocol = 'https:';
+                mcpU.port = '';
+                mcpU.pathname = '/mcp';
+            } else {
+                mcpU.port = mcpU.port || pageU.port || (pageU.protocol === 'https:' ? '443' : '80');
+            }
             mcpUrl = mcpU.toString();
         }
     } catch { /* keep configured URL on parse failure */ }
