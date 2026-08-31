@@ -57,8 +57,8 @@ const STRINGS = {
         ],
     },
     zh: {
-        brandTitle: '城市热洞察',
-        docTitle: '城市热洞察 · 城市暑热地理智能体',
+        brandTitle: '智慧城市热分析平台HeatScope',
+        docTitle: '智慧城市热分析平台HeatScope',
         placeholder: '询问东京地表温度…',
         sendBtn: '发送',
         showChat: '显示聊天',
