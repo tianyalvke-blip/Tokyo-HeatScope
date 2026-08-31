@@ -1522,7 +1522,18 @@ export class MapManager {
     }
 
     _ensureLegend() {
-        if (this._legendEl) return;
+        const slot = document.getElementById('mobile-legend-slot');
+
+        // If the legend was already created (e.g. during a preload before the
+        // mobile layer panel rendered) but is now detached from its intended
+        // host, re-mount it into the slot so mobile never shows a floating box.
+        if (this._legendEl) {
+            if (slot && this._legendEl.parentNode !== slot) {
+                slot.appendChild(this._legendEl);
+                this._legendEl.classList.add('inline');
+            }
+            return;
+        }
 
         const legend = document.createElement('div');
         legend.id = 'legend';
@@ -1535,7 +1546,6 @@ export class MapManager {
         `;
         // On mobile the legend lives inline inside the layer panel's
         // select slot instead of as a free-floating box (see CSS).
-        const slot = document.getElementById('mobile-legend-slot');
         if (slot) {
             slot.appendChild(legend);
             legend.classList.add('inline');
@@ -1575,6 +1585,16 @@ export class MapManager {
 
         this._ensureLegend();
         this._legendEl.style.display = '';
+
+        // Mobile: the legend lives in the layer-picker slot and should show
+        // ONLY the currently selected layer's legend. Hide every other
+        // cached legend item before showing this one.
+        const mobile = !!document.getElementById('mobile-legend-slot');
+        if (mobile) {
+            for (const [lid, el] of this._legendItems) {
+                if (lid !== layerId) el.style.display = 'none';
+            }
+        }
 
         if (this._legendItems.has(layerId)) {
             this._legendItems.get(layerId).style.display = '';
