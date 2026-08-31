@@ -594,10 +594,17 @@ body:has(#chat-container.collapsed) #chat-reopen {
     margin: 0 0 8px;
 }
 
-.welcome-message p:first-child {
+.welcome-message p.welcome-title {
+    margin: 0 0 8px;
     font-size: 16px;
     font-weight: 700;
     color: #1a1a2e;
+}
+
+.welcome-message p.welcome-body {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #6b7280;
 }
 
 .welcome-examples {

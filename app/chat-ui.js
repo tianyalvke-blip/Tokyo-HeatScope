@@ -351,7 +351,15 @@ export class ChatUI {
 
         let html = '';
         if (welcome.message) {
-            html += `<p>${this.escapeHtml(welcome.message).replace(/\n/g, '<br>')}</p>`;
+            const lines = welcome.message.split('\n');
+            const title = lines[0];
+            const body = lines.slice(1).join('<br>');
+            if (title) {
+                html += `<p class="welcome-title">${this.escapeHtml(title)}</p>`;
+            }
+            if (body) {
+                html += `<p class="welcome-body">${this.escapeHtml(body)}</p>`;
+            }
         }
         if (welcome.examples?.length) {
             html += '<ul class="welcome-examples">';
