@@ -1130,3 +1130,52 @@ details[open]>.query-summary-btn::before {
     color: rgba(0, 0, 0, 0.4);
     font-style: italic;
 }
+
+/* ── Mobile optimization ───────────────────────────────────────
+   Phones: chat stays open but leaves a strip of map visible on the
+   right so users see the map is there; collapse hides it entirely.
+   Larger touch targets, no hover-only interactions, keyboard-safe. */
+@media (max-width: 700px) {
+    #chat-container {
+        width: min(88vw, 360px);
+        min-width: 0;
+        max-width: 88vw;
+    }
+    #chat-container.collapsed {
+        transform: translateX(-100%);
+    }
+    /* Bigger reopen tab — thumb-friendly */
+    #chat-reopen {
+        width: 32px;
+        height: 96px;
+        font-size: 16px;
+        border-radius: 0 12px 12px 0;
+    }
+    /* No drag-resize on touch */
+    .chat-resize-handle {
+        display: none;
+    }
+    /* Chat toggle button (collapse) larger tap target */
+    #chat-toggle {
+        font-size: 22px;
+        padding: 6px 8px;
+    }
+    /* Message text sizes comfortable on small screens */
+    .chat-message {
+        font-size: 15px;
+    }
+    .welcome-message {
+        font-size: 14px;
+    }
+    /* Input area: keep above the on-screen keyboard */
+    #chat-input-container {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #chat-input {
+        font-size: 16px;
+    }
+    /* Safe-area top for notch phones */
+    #chat-header {
+        padding-top: max(8px, env(safe-area-inset-top, 0px));
+    }
+}
