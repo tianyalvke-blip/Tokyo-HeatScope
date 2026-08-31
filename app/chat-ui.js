@@ -351,14 +351,14 @@ export class ChatUI {
 
         let html = '';
         if (welcome.message) {
-            const lines = welcome.message.split('\n').filter(l => l !== '');
-            const title = lines[0];
-            const body = lines.slice(1).join('<br><br>');
-            if (title) {
+            const paragraphs = welcome.message.split('\n').filter(l => l !== '');
+            if (paragraphs.length > 0) {
+                const title = paragraphs[0];
+                const body = paragraphs.slice(1);
                 html += `<p class="welcome-title">${this.escapeHtml(title)}</p>`;
-            }
-            if (body) {
-                html += `<p class="welcome-body">${this.escapeHtml(body)}</p>`;
+                for (const para of body) {
+                    html += `<p class="welcome-body">${this.escapeHtml(para)}</p>`;
+                }
             }
         }
         if (welcome.examples?.length) {
