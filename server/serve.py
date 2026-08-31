@@ -40,6 +40,9 @@ RANGE_RE = re.compile(r"bytes=(\d*)-(\d*)")
 class RangeRequestHandler(SimpleHTTPRequestHandler):
     """SimpleHTTPRequestHandler with HTTP Range + CORS + external roots."""
 
+    # gzip cache shared across instances: { (path, mtime_ns, size): bytes }
+    _gzip_cache = {}
+
     # ---- helpers -------------------------------------------------------
 
     def _resolve(self, url_path):
@@ -138,12 +141,24 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
 
         Only used for full-file responses (no Range header). Returns a
         (bytes, headers) tuple or None to fall through to plain serving.
+
+        Compressed bytes are cached keyed by (path, mtime, size) so repeat
+        requests don't re-compress big assets on every hit — a real bottleneck
+        on low-bandwidth links where the same 1 MB library is fetched often.
         """
         if ctype not in ('application/json', 'application/geo+json', 'text/html', 'text/css', 'application/javascript', 'text/javascript'):
             return None
         accept = self.headers.get('Accept-Encoding', '')
         if 'gzip' not in accept:
             return None
+        try:
+            st = resolved.stat()
+        except OSError:
+            return None
+        cache_key = (str(resolved), st.st_mtime_ns, st.st_size)
+        cached = self.__class__._gzip_cache.get(cache_key)
+        if cached is not None:
+            return cached
         try:
             raw = resolved.read_bytes()
         except OSError:
@@ -154,7 +169,12 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         gzipped = buf.getvalue()
         if len(gzipped) >= len(raw):
             return None
-        return gzipped, {'Content-type': ctype, 'Content-Encoding': 'gzip'}
+        result = (gzipped, {'Content-type': ctype, 'Content-Encoding': 'gzip'})
+        # Bound the cache so stale large blobs don't grow unbounded.
+        if len(self.__class__._gzip_cache) > 32:
+            self.__class__._gzip_cache.clear()
+        self.__class__._gzip_cache[cache_key] = result
+        return result
 
     def send_head(self):
         path = self.translate_path(self.path)
