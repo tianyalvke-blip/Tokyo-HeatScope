@@ -157,7 +157,7 @@ body:has(#chat-container.collapsed) #chat-reopen {
 
 .chat-brand .brand-title {
     margin: 0;
-    font-size: 19px;
+    font-size: 21px;
     font-weight: 780;
     letter-spacing: -0.02em;
 }
@@ -592,6 +592,12 @@ body:has(#chat-container.collapsed) #chat-reopen {
 
 .welcome-message p {
     margin: 0 0 8px;
+}
+
+.welcome-message p:first-child {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
 }
 
 .welcome-examples {
