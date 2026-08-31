@@ -63,7 +63,23 @@ async function main() {
      * MCP cold-start, the STAC catalog walk, the map style, and the static
      * system-prompt fetch are mutually independent. Fire the slow ones now and
      * await them together below, instead of serializing each round trip. */
-    const mcpUrl = appConfig.mcp_url || 'https://duckdb-mcp.nrp-nautilus.io/mcp';
+    let mcpUrl = appConfig.mcp_url || 'https://duckdb-mcp.nrp-nautilus.io/mcp';
+    // Self-hosted deployment: layers-input.json ships with 127.0.0.1 (dev
+    // default) but when the page is served over the LAN/public internet the
+    // browser must reach the MCP server on the SAME host it loaded the page
+    // from — pointing at loopback would hit the visitor's own machine and be
+    // blocked as a private-network request. Rewrite localhost hosts to the
+    // page origin's host automatically so the same config works everywhere.
+    try {
+        const mcpU = new URL(mcpUrl);
+        const pageU = new URL(window.location.href);
+        if ((mcpU.hostname === '127.0.0.1' || mcpU.hostname === 'localhost')
+            && pageU.hostname !== '127.0.0.1' && pageU.hostname !== 'localhost') {
+            mcpU.hostname = pageU.hostname;
+            mcpU.port = mcpU.port || pageU.port || (pageU.protocol === 'https:' ? '443' : '80');
+            mcpUrl = mcpU.toString();
+        }
+    } catch { /* keep configured URL on parse failure */ }
     const mcpHeaders = {};
     if (appConfig.mcp_auth_token) {
         mcpHeaders['Authorization'] = `Bearer ${appConfig.mcp_auth_token}`;
