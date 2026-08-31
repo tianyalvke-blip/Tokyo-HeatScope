@@ -334,9 +334,11 @@ function applySidebarWidth(w) {
 }
 
 function initSidebarResize(handle, defaultWidth) {
-    // Boot: localStorage overrides config.default_width if within bounds.
-    const stored = Number(localStorage.getItem(SIDEBAR_WIDTH_KEY));
-    const initial = clampSidebarWidth(Number.isFinite(stored) && stored > 0 ? stored : defaultWidth);
+    // Boot: always start from config.default_width. We deliberately do NOT
+    // restore a persisted drag width here — the operator wants the panel to
+    // open at the configured default every time. (The drag handler below
+    // still works during the session; it just isn't replayed on reload.)
+    const initial = clampSidebarWidth(defaultWidth);
     applySidebarWidth(initial);
 
     // Re-clamp on window resize so sidebar never exceeds 60vw.
