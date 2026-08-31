@@ -84,10 +84,12 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_cors()
-        # Dev server: always revalidate so CSS/JS edits are picked up without a
-        # hard refresh (browsers would otherwise heuristic-cache our unversioned
-        # static assets and show a stale layout).
-        self.send_header("Cache-Control", "no-cache")
+        # Dev-friendly default: revalidate unversioned assets so CSS/JS edits
+        # are picked up without a hard refresh. Handlers that explicitly set a
+        # Cache-Control (vendor libs, dataset geojson, geocode proxy) mark
+        # self._cache_set so we don't override their long-lived cache policy.
+        if not getattr(self, '_cache_set', False):
+            self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -97,9 +99,17 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def _cache_control(self, resolved):
-        """Cache-Control: long for versioned vendor assets, else no-cache."""
+        """Cache-Control: long for versioned/static assets, else no-cache.
+
+        vendor/* (versioned libs) and the dataset geojson (a build artifact
+        regenerated only by scripts/prepare_data.py) are safe to cache hard —
+        they don't change between deploys and caching them is what lets many
+        concurrent visitors reuse the same bytes instead of re-downloading.
+        Everything else stays no-cache for dev-friendliness.
+        """
         rel = str(resolved).replace('\\', '/')
-        if '/vendor/' in rel or '/vendor\\' in rel:
+        if ('/vendor/' in rel or '/vendor\\' in rel
+                or rel.endswith('.geojson')):
             return 'public, max-age=86400'
         return 'no-cache'
 
@@ -133,6 +143,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Cache-Control", "public, max-age=3600")
+        self._cache_set = True
         self.end_headers()
         self.wfile.write(body)
 
@@ -195,6 +206,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
             self.send_header("Cache-Control", self._cache_control(resolved))
+            self._cache_set = True
             self.send_header("Vary", "Accept-Encoding")
             self.end_headers()
             return body
@@ -211,6 +223,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(size))
         self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
         self.send_header("Cache-Control", self._cache_control(resolved))
+        self._cache_set = True
         self.send_header("Accept-Ranges", "bytes")
         self.end_headers()
         return f
@@ -270,6 +283,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
             self.send_header("Cache-Control", self._cache_control(resolved))
+            self._cache_set = True
             self.send_header("Vary", "Accept-Encoding")
             self.end_headers()
             self.wfile.write(body)
@@ -281,6 +295,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
         self.send_header("Cache-Control", self._cache_control(resolved))
+        self._cache_set = True
         self.end_headers()
         with open(resolved, "rb") as f:
             while True:
