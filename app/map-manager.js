@@ -1312,6 +1312,49 @@ export class MapManager {
                 itemContainer.appendChild(wrapper);
             }
         }
+
+        // ── Mobile single-select layer picker ─────────────────────────────
+        // Phones use a compact <select> instead of the checkbox stack: one
+        // visible data layer at a time, legend for the chosen layer shown
+        // inline below. Rendered alongside the desktop controls; CSS decides
+        // which is visible per breakpoint.
+        if (!this._mobileSelect) {
+            // Mount inside the menu body (not #layer-controls-container,
+            // which mobile CSS hides along with the checkbox stack).
+            const host = document.getElementById('menu-body')
+                || document.querySelector('#menu .menu-body')
+                || container;
+            const wrap = document.createElement('div');
+            wrap.className = 'mobile-layer-select';
+            const select = document.createElement('select');
+            select.id = 'mobile-layer-select';
+            const off = document.createElement('option');
+            off.value = '';
+            off.textContent = 'Layers';
+            select.appendChild(off);
+            for (const [layerId, state] of this.layers) {
+                if (!state.displayName) continue;
+                const opt = document.createElement('option');
+                opt.value = layerId;
+                opt.textContent = state.displayName;
+                select.appendChild(opt);
+            }
+            select.addEventListener('change', () => {
+                const chosen = select.value;
+                for (const [layerId] of this.layers) {
+                    if (layerId === chosen) this.showLayer(layerId);
+                    else this.hideLayer(layerId);
+                }
+            });
+            wrap.appendChild(select);
+            // Inline legend anchor: the legend for the selected layer is
+            // moved here on mobile (see _ensureLegend / CSS).
+            const legendSlot = document.createElement('div');
+            legendSlot.id = 'mobile-legend-slot';
+            wrap.appendChild(legendSlot);
+            host.appendChild(wrap);
+            this._mobileSelect = select;
+        }
     }
 
     /**
@@ -1441,7 +1484,15 @@ export class MapManager {
             </div>
             <div id="legend-content"></div>
         `;
-        document.body.appendChild(legend);
+        // On mobile the legend lives inline inside the layer panel's
+        // select slot instead of as a free-floating box (see CSS).
+        const slot = document.getElementById('mobile-legend-slot');
+        if (slot) {
+            slot.appendChild(legend);
+            legend.classList.add('inline');
+        } else {
+            document.body.appendChild(legend);
+        }
         this._legendEl = legend;
         this._legendContent = legend.querySelector('#legend-content');
 

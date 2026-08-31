@@ -307,6 +307,11 @@
     box-shadow: var(--glen-shadow-float);
 }
 
+/* Mobile-only single-select layer picker (desktop keeps checkboxes). */
+.mobile-layer-select {
+    display: none;
+}
+
 /* Layer workspace ------------------------------------------------------ */
 
 #menu {
@@ -637,6 +642,70 @@ body.sidebar-mode #sidebar-header h3 {
         right: 10px;
         bottom: 82px;
         border-radius: 15px;
+    }
+
+    /* ── Mobile layer panel: compact single-select ────────────────────
+       Hide the desktop checkbox stack, basemap switcher, and reduce
+       chrome; show the mobile <select> with the inline legend below it. */
+    #layer-controls-container {
+        display: none;
+    }
+    .mobile-layer-select {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .mobile-layer-select select {
+        width: 100%;
+        padding: 9px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(23, 48, 66, 0.18);
+        background: rgba(255, 255, 255, 0.9);
+        color: #1a1a2e;
+        font-size: 14px;
+        font-family: inherit;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    /* Inline legend: no box, just the colorbar + numbers. */
+    #legend.inline {
+        position: static;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        backdrop-filter: none;
+        padding: 0;
+        margin: 0;
+    }
+    #legend.inline #legend-header {
+        display: none;
+    }
+    #legend.inline .legend-section {
+        margin-bottom: 6px;
+    }
+    #legend.inline .legend-section h4 {
+        font-size: 11px;
+        margin: 0 0 4px;
+    }
+    #legend.inline .legend-colorbar {
+        height: 8px;
+    }
+    #legend.inline .legend-labels {
+        font-size: 10px;
+    }
+    /* Hide basemap switching on mobile — default basemap is fine. */
+    .basemap-toggle-group {
+        display: none !important;
+    }
+    /* Trim headings to keep the panel compact. */
+    .menu-header .section-title,
+    .menu-section-header {
+        display: none;
+    }
+    #menu {
+        min-width: 0;
+        max-width: calc(100vw - 42px);
+        padding: 8px;
     }
 
     /* On phones the chat is a bottom drawer; nudge the map nav controls so

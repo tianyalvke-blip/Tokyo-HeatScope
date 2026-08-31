@@ -109,9 +109,10 @@ function buildFloatingLayout(_appConfig, title) {
     initChatResize(container);
 
     // Re-open tab for the left-docked chat (visible via CSS only while the
-    // chat container is collapsed).
+    // chat container is collapsed). Desktop shows a left-pointing chevron;
+    // mobile (bottom drawer) swaps to an up-pointing chevron via CSS.
     const reopen = el('button', { id: 'chat-reopen', title: 'Show chat' });
-    reopen.textContent = '\u25C0';
+    reopen.innerHTML = '<span class="reopen-icon reopen-icon-desktop">&#9664;</span><span class="reopen-icon reopen-icon-mobile">&#9650;</span>';
     reopen.addEventListener('click', () => container.classList.remove('collapsed'));
     document.body.appendChild(reopen);
 
