@@ -164,7 +164,13 @@ function buildSidebarLayout(appConfig, title) {
 
     // Apply initial --sidebar-width from config (localStorage override
     // is applied in Task 7 when resize persistence is added).
-    const defaultWidth = Number(appConfig.sidebar?.default_width) || 420;
+    // Adaptive default: honor an explicit config pixel width, otherwise size
+    // the panel to ~26% of the viewport so it never swallows the map on any
+    // screen (1080p → ~500px, 1440p → ~374px, etc.).
+    const explicit = Number(appConfig.sidebar?.default_width);
+    const defaultWidth = (Number.isFinite(explicit) && explicit > 0)
+        ? explicit
+        : Math.max(320, Math.min(560, Math.round(0.26 * window.innerWidth)));
     document.documentElement.style.setProperty('--sidebar-width', defaultWidth + 'px');
 
     const sidebar = el('aside', { id: 'sidebar' });

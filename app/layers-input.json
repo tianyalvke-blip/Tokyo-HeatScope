@@ -1,6 +1,6 @@
 {
     "title": "城市热洞察",
-    "sidebar": { "title": "城市热洞察", "default_width": 504 },
+    "sidebar": { "title": "城市热洞察" },
     "catalog": "data/catalog.json",
     "mcp_url": "http://127.0.0.1:8765/mcp",
     "titiler_url": "https://titiler.nrp-nautilus.io",
