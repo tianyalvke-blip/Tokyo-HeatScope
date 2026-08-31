@@ -136,7 +136,14 @@ export class MCPClient {
         this.lastReconnectTime = now;
 
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            throw new Error('MCP server temporarily unavailable. Please try again in a moment.');
+            // Budget exhausted within a burst. Rather than failing hard (which
+            // latches a long-lived page into "unavailable" until the quiet
+            // window passes), wait longer and try again — a transient server
+            // hiccup usually clears. The delay grows so we don't hammer.
+            const backoff = Math.min(this.reconnectAttempts * 3000, 15000);
+            console.warn(`[MCP] Reconnect budget exhausted; backing off ${backoff}ms and retrying...`);
+            await new Promise(r => setTimeout(r, backoff));
+            this.reconnectAttempts = 0;
         }
 
         this.reconnectAttempts++;
