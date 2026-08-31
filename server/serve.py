@@ -21,6 +21,7 @@ Environment overrides:
 
 import gzip
 import io
+import json
 import os
 import re
 import socket
@@ -99,6 +100,39 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             return 'public, max-age=86400'
         return 'no-cache'
 
+    def _proxy_geocode(self):
+        """Proxy a geocoding request to Nominatim (OSM).
+
+        Query string is forwarded as-is (q, format, limit, addressdetails,
+        email...). Responses are JSON with permissive CORS so the static
+        browser app can call /api/geocode from any origin.
+        """
+        import urllib.parse
+        import urllib.request
+
+        target = "https://nominatim.openstreetmap.org/search" + self.path[len("/api/geocode"):]
+        headers = {
+            "User-Agent": "TokyoHeatScope/1.0 (urban heat analysis demo)",
+            "Accept": "application/json",
+        }
+        try:
+            req = urllib.request.Request(target, headers=headers)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                body = resp.read()
+                status = resp.status
+        except Exception as exc:
+            err = json.dumps({"success": False, "error": f"Geocoding proxy failed: {exc}"})
+            body = err.encode("utf-8")
+            status = 502
+
+        self.send_response(status)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Cache-Control", "public, max-age=3600")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _gzip_response(self, resolved, ctype):
         """Serve a text/json file gzipped if the client accepts gzip.
 
@@ -162,6 +196,13 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         return f
 
     def do_GET(self):
+        # /api/geocode — server-side proxy to Nominatim so the browser never
+        # touches OSM directly (blocked/slow in some networks, e.g. mainland
+        # China). Forward query params; return JSON verbatim with CORS.
+        if self.path.startswith("/api/geocode"):
+            self._proxy_geocode()
+            return
+
         resolved = self._resolve(self.path)
         if resolved is None:
             self.send_error(404, "File not found")

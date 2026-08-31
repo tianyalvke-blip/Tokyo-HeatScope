@@ -49,7 +49,7 @@ function bucket(score) {
 
 /* ── Provider: Nominatim ──────────────────────────────────────────────── */
 
-function nominatimUrl(base, query, limit, email) {
+function nominatimUrl(base, query, limit, email, proxy) {
     const p = new URLSearchParams({
         q: query,
         format: 'jsonv2',
@@ -57,16 +57,20 @@ function nominatimUrl(base, query, limit, email) {
         addressdetails: '1',
     });
     if (email) p.set('email', email);   // contact per OSM usage policy
+    // Proxy mode: the server exposes /api/geocode which forwards to
+    // Nominatim's /search; query params ride on the same path.
+    if (proxy) return `${proxy}?${p}`;
     return `${base}/search?${p}`;
 }
 
-function nominatimReverseUrl(base, lat, lon, email) {
+function nominatimReverseUrl(base, lat, lon, email, proxy) {
     const p = new URLSearchParams({
         lat: String(lat),
         lon: String(lon),
         format: 'jsonv2',
     });
     if (email) p.set('email', email);
+    if (proxy) return `${proxy}?${p}`;
     return `${base}/reverse?${p}`;
 }
 
@@ -183,6 +187,7 @@ function parseMaptiler(json) {
  * @param {Object} [config]
  * @param {'nominatim'|'photon'|'maptiler'} [config.provider='nominatim']
  * @param {string} [config.endpoint]      // base URL override (e.g. self-hosted Nominatim)
+ * @param {string} [config.proxy]         // server-side proxy base (e.g. '/api/geocode') for nominatim
  * @param {string} [config.maptiler_key]  // required for the maptiler provider
  * @param {string} [config.email]         // contact passed to Nominatim per usage policy
  * @param {typeof fetch} [config.fetchImpl=fetch]  // injectable for tests
@@ -191,6 +196,7 @@ function parseMaptiler(json) {
 export function createGeocoder(config = {}) {
     const provider = config.provider || 'nominatim';
     const fetchImpl = config.fetchImpl || ((...a) => fetch(...a));
+    const proxy = config.proxy || null;
 
     const bases = {
         nominatim: config.endpoint || NOMINATIM_BASE,
@@ -223,7 +229,7 @@ export function createGeocoder(config = {}) {
         const limit = Math.max(1, Math.min(opts.limit || 5, 10));
         const base = bases[provider];
         let url;
-        if (provider === 'nominatim') url = nominatimUrl(base, q, limit, config.email);
+        if (provider === 'nominatim') url = nominatimUrl(base, q, limit, config.email, proxy);
         else if (provider === 'photon') url = photonUrl(base, q, limit);
         else url = maptilerUrl(base, q, limit, config.maptiler_key);
 
@@ -245,7 +251,7 @@ export function createGeocoder(config = {}) {
         if (la == null || lo == null) return null;
         const base = bases[provider];
         let url;
-        if (provider === 'nominatim') url = nominatimReverseUrl(base, la, lo, config.email);
+        if (provider === 'nominatim') url = nominatimReverseUrl(base, la, lo, config.email, proxy);
         else if (provider === 'photon') url = photonReverseUrl(base, la, lo);
         else url = maptilerReverseUrl(base, la, lo, config.maptiler_key);
 

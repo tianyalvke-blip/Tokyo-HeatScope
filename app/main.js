@@ -217,8 +217,13 @@ async function main() {
     let geocoder = null;
     if (geocodeToolEnabled || geoCfg.search_box) {
         try {
+            const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
             geocoder = createGeocoder({
                 ...geoCfg,
+                // Self-hosted: route Nominatim through our server proxy so
+                // geocoding works even where OSM is blocked. Local dev keeps
+                // direct access.
+                ...(!isLocal ? { proxy: '/api/geocode' } : {}),
                 maptiler_key: geoCfg.maptiler_key || runtimeConfig?.maptiler_key,
             });
         } catch (err) {
