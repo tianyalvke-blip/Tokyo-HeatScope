@@ -1333,7 +1333,9 @@ export class MapManager {
             off.textContent = 'Layers';
             select.appendChild(off);
             for (const [layerId, state] of this.layers) {
-                if (!state.displayName) continue;
+                // Skip the basemap layer — it stays always-on and is never
+                // an option in the mobile single-select picker.
+                if (state.type === 'basemap' || !state.displayName) continue;
                 const opt = document.createElement('option');
                 opt.value = layerId;
                 opt.textContent = state.displayName;
@@ -1341,7 +1343,8 @@ export class MapManager {
             }
             select.addEventListener('change', () => {
                 const chosen = select.value;
-                for (const [layerId] of this.layers) {
+                for (const [layerId, state] of this.layers) {
+                    if (state.type === 'basemap') continue; // keep basemap on
                     if (layerId === chosen) this.showLayer(layerId);
                     else this.hideLayer(layerId);
                 }

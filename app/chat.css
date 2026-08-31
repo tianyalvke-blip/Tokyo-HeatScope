@@ -1163,15 +1163,15 @@ details[open]>.query-summary-btn::before {
     }
     /* Reopen tab now sits at the bottom-center of the screen. */
     #chat-reopen {
-        top: auto;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 72px;
-        height: 34px;
-        border-radius: 12px 12px 0 0;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-bottom: none;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 72px !important;
+        height: 34px !important;
+        border-radius: 12px 12px 0 0 !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        border-bottom: none !important;
         box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.2);
     }
     .reopen-icon-desktop {
