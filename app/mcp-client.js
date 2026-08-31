@@ -26,6 +26,12 @@ export class MCPClient {
         this.lastReconnectTime = 0;
         this._connectPromise = null;
         this._onReconnect = null;
+        // StreamableHTTP sessions are invalidated server-side after an idle
+        // timeout. Track when we last connected and rebuild the client when
+        // the session exceeds a conservative max age, instead of trusting a
+        // stale `connected` flag on long-lived pages.
+        this.sessionMaxAgeMs = 5 * 60 * 1000;
+        this._lastConnectedAt = 0;
     }
 
     /**
@@ -78,6 +84,7 @@ export class MCPClient {
             this.tools = response.tools || [];
             this.connected = true;
             this.reconnectAttempts = 0;
+            this._lastConnectedAt = Date.now();
             console.log('[MCP] Connected. Tools:', this.tools.map(t => t.name));
         } catch (error) {
             this.connected = false;
@@ -98,7 +105,20 @@ export class MCPClient {
         // genuinely stale connection is caught by callTool's reconnect-and-retry
         // branch (the only frequent, long-lived op); boot-time prompt reads run
         // right after a fresh connect, so they're never stale.
-        if (this.connected && this.client) return;
+        //
+        // However, on a long-lived page a StreamableHTTP session can be
+        // invalidated server-side after an idle timeout while the local
+        // `connected` flag stays true. Detect that staleness here and rebuild
+        // the client proactively so the next call starts on a fresh session
+        // instead of throwing.
+        if (this.connected && this.client) {
+            const stale = this._lastConnectedAt > 0 && (Date.now() - this._lastConnectedAt) > this.sessionMaxAgeMs;
+            if (!stale) return;
+            console.warn('[MCP] Session idle-exceeded, rebuilding connection...');
+            this.connected = false;
+            try { await this.client.close(); } catch { /* ignore */ }
+            this.client = null;
+        }
         await this.reconnect();
     }
 
@@ -186,16 +206,28 @@ export class MCPClient {
 
             throw new Error('No content in MCP response');
         } catch (error) {
-            // If it's a connection error, try once more after reconnect
+            // If it's a connection error, try once more after reconnect.
+            // We widen the match beyond plain network errors: a long-lived
+            // StreamableHTTP session can be invalidated server-side (timeout /
+            // restart), after which the SDK throws protocol-level errors that
+            // don't mention fetch/network. Any exception here is almost always
+            // transport/session related (business errors arrive as normal
+            // results), so reconnect-and-retry once before giving up.
             const isConnectionError =
+                error.name === 'TypeError' ||
                 error.message?.includes('fetch') ||
                 error.message?.includes('network') ||
                 error.message?.includes('timeout') ||
-                error.name === 'TypeError';
+                error.message?.includes('session') ||
+                error.message?.includes('Bad Request') ||
+                error.message?.includes('Unauthorized') ||
+                /MCP|McpError|Protocol|streamable/i.test(error.message || '');
 
             if (isConnectionError) {
-                console.warn('[MCP] Connection error during callTool, reconnecting...');
+                console.warn('[MCP] Connection error during callTool, reconnecting...', error.message);
                 this.connected = false;
+                this.client = null;
+                this.reconnectAttempts = 0;
                 await this.ensureConnected();
                 // Retry once
                 const result = await this.client.callTool({ name, arguments: args }, undefined, { timeout: 600000 });
