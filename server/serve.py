@@ -92,6 +92,13 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def _cache_control(self, resolved):
+        """Cache-Control: long for versioned vendor assets, else no-cache."""
+        rel = str(resolved).replace('\\', '/')
+        if '/vendor/' in rel or '/vendor\\' in rel:
+            return 'public, max-age=86400'
+        return 'no-cache'
+
     def _gzip_response(self, resolved, ctype):
         """Serve a text/json file gzipped if the client accepts gzip.
 
@@ -133,6 +140,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
                 self.send_header(k, v)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
+            self.send_header("Cache-Control", self._cache_control(resolved))
             self.send_header("Vary", "Accept-Encoding")
             self.end_headers()
             return body
@@ -148,6 +156,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-type", ctype)
         self.send_header("Content-Length", str(size))
         self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
+        self.send_header("Cache-Control", self._cache_control(resolved))
         self.send_header("Accept-Ranges", "bytes")
         self.end_headers()
         return f
@@ -199,6 +208,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
                 self.send_header(k, v)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
+            self.send_header("Cache-Control", self._cache_control(resolved))
             self.send_header("Vary", "Accept-Encoding")
             self.end_headers()
             self.wfile.write(body)
@@ -209,6 +219,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(size))
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Last-Modified", self.date_time_string(resolved.stat().st_mtime))
+        self.send_header("Cache-Control", self._cache_control(resolved))
         self.end_headers()
         with open(resolved, "rb") as f:
             while True:
