@@ -77,7 +77,6 @@ coverage/
 evals/reports/
 evals/pip-install*.log
 uv/.cache/
-.python-version
 
 # Claude Code (local, machine-specific). Shared project config such as
 # .claude/settings.json or .claude/commands/ can still be committed.
