@@ -194,7 +194,11 @@ export class ChatUI {
             this.initSettingsUI();
             // A proxy configuration may already provide a model list. Only
             // open the panel automatically when the user has no local key.
-            if (!localStorage.getItem('geo-agent-api-key') && this.config.llm?.user_provided) {
+            if (localStorage.getItem('geo-agent-api-key')) {
+                // Re-apply the saved browser key on every page load so a
+                // proxy-configured deployment can switch to direct access.
+                this.applyUserLLMConfig();
+            } else if (this.config.llm?.user_provided) {
                 this.showSettingsPanel();
             }
         }
