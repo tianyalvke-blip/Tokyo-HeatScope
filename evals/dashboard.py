@@ -16,6 +16,7 @@ CASES = ROOT / "cases"
 TRACES = ROOT / "traces"
 REPORTS = ROOT / "reports"
 UI = ROOT / "ui"
+REAL_STATUS = {"state": "idle", "run_id": None, "suite": None, "total": 0, "completed": 0}
 
 
 def evaluate(cases_path: Path, traces_path: Path) -> dict:
@@ -40,6 +41,18 @@ def evaluate(cases_path: Path, traces_path: Path) -> dict:
     }
 
 
+def load_suite(name: str) -> list[dict]:
+    allowed = {
+        "golden": CASES / "golden.jsonl",
+        "core": CASES / "lstagent_core_en.jsonl",
+        "multiturn": CASES / "lstagent_multiturn_en.jsonl",
+    }
+    path = allowed.get(name)
+    if not path or not path.exists():
+        raise FileNotFoundError(name)
+    return read_jsonl(path)
+
+
 def safe_trace(name: str) -> Path:
     candidate = (TRACES / name).resolve()
     if candidate.parent != TRACES.resolve() or candidate.suffix != ".jsonl":
@@ -59,11 +72,45 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
 
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def do_POST(self):
+        if self.path != "/api/real-status":
+            self._json({"error": "Not found"}, 404)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            REAL_STATUS.update({key: payload[key] for key in (
+                "state", "run_id", "suite", "total", "completed", "current", "message"
+            ) if key in payload})
+            self._json({"ok": True})
+        except (ValueError, json.JSONDecodeError) as exc:
+            self._json({"error": str(exc)}, 400)
+        return
+
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/api/cases":
+            try:
+                suite = parse_qs(parsed.query).get("suite", ["core"])[0]
+                rows = load_suite(suite)
+                self._json({"suite": suite, "cases": [
+                    {"id": row["id"], "label": row.get("prompt") or " / ".join(row.get("turns", []))}
+                    for row in rows
+                ]})
+            except FileNotFoundError as exc:
+                self._json({"error": str(exc)}, 404)
+            return
         if parsed.path == "/api/traces":
             files = sorted(p.name for p in TRACES.glob("*.jsonl"))
             self._json({"traces": files})
@@ -78,6 +125,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if parsed.path == "/api/health":
             self._json({"ok": True})
+            return
+        if parsed.path == "/api/real-status":
+            self._json(REAL_STATUS)
             return
         if parsed.path == "/":
             self.path = "/index.html"

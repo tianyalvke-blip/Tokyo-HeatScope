@@ -66,7 +66,19 @@ function runRealSuite() {
   const suite = $('suiteSelect').value;
   const label = suite === 'multiturn' ? 'Multi-turn（20 组）' : suite === 'core' ? 'Core（60 题）' : 'Golden（31 题）';
   if (!confirm(`将使用当前浏览器中保存的 API Key 执行 ${label}，确定继续吗？`)) return;
-  window.location.href = `http://127.0.0.1:8100/?eval_suite=${encodeURIComponent(suite)}`;
+  const target = `http://127.0.0.1:8100/?eval_suite=${encodeURIComponent(suite)}`;
+  const opened = window.open(target, '_blank', 'noopener');
+  if (!opened) toast('浏览器阻止了新标签页，请允许弹窗后重试');
+}
+
+async function pollRealStatus() {
+  try {
+    const s = await fetch('http://127.0.0.1:8170/api/real-status', { cache: 'no-store' }).then(r => r.json());
+    const total = Number(s.total || 0), completed = Number(s.completed || 0);
+    $('liveStatus').textContent = s.state === 'running' ? `${completed}/${total}` : (s.state === 'done' ? '已完成' : '未运行');
+    $('liveProgressBar').style.width = total ? `${Math.min(100, completed / total * 100)}%` : '0%';
+    $('liveMessage').textContent = s.message || (s.current ? `当前：${s.current}` : '点击“运行整套真实 Agent”后，这里会实时显示进度。');
+  } catch (_) { /* dashboard may be opened before the API is ready */ }
 }
 
 async function run() {
@@ -86,3 +98,4 @@ $('suiteSelect').addEventListener('change', () => loadCases().catch(err => toast
 $('openAgentBtn').addEventListener('click', openAgent);
 $('runRealBtn').addEventListener('click', runRealSuite);
 Promise.all([loadTraces(), loadCases()]).then(run).catch(err => toast(`无法加载评测数据：${err.message}`));
+setInterval(pollRealStatus, 1000); pollRealStatus();

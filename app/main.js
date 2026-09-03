@@ -512,19 +512,28 @@ async function runEvaluationSuite(ui, suite) {
     try {
         const text = await fetch(path).then(r => r.text());
         const cases = text.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
+        const runId = crypto.randomUUID();
+        const reportStatus = (payload) => fetch('http://127.0.0.1:8170/api/real-status', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ run_id: runId, suite, total: cases.length, ...payload })
+        }).catch(() => {});
+        await reportStatus({ state: 'running', completed: 0, message: `真实评测开始：${suite}` });
         ui.addMessage('system', `真实评测开始：${suite}，共 ${cases.length} 个用例。`);
         let done = 0;
         for (const item of cases) {
             const prompts = item.turns || [item.prompt];
             ui.addMessage('system', `开始 ${item.id}（${++done}/${cases.length}）`);
+            await reportStatus({ state: 'running', completed: done - 1, current: item.id, message: `正在执行 ${item.id}（${done}/${cases.length}）` });
             for (const prompt of prompts) {
                 ui.inputEl.value = prompt;
                 await ui.handleSend();
                 while (ui.busy) await new Promise(resolve => setTimeout(resolve, 250));
             }
+            await reportStatus({ state: 'running', completed: done, current: item.id, message: `已完成 ${item.id}（${done}/${cases.length}）` });
         }
+        await reportStatus({ state: 'done', completed: cases.length, message: `真实评测完成：${cases.length} 个用例。` });
         ui.addMessage('system', `真实评测完成：${cases.length} 个用例。`);
     } catch (err) {
+        if (typeof reportStatus === 'function') await reportStatus({ state: 'error', message: err.message });
         ui.addMessage('error', `真实评测启动失败：${err.message}`);
     }
 }
