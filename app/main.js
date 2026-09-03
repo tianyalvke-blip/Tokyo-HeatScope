@@ -503,15 +503,16 @@ async function main() {
 
 async function runEvaluationSuite(ui, suite) {
     const files = {
-        core: '/evals/cases/lstagent_core_en.jsonl',
-        multiturn: '/evals/cases/lstagent_multiturn_en.jsonl',
-        golden: '/evals/cases/golden.jsonl',
+        core: 'core',
+        multiturn: 'multiturn',
+        golden: 'golden',
     };
     const path = files[suite];
     if (!path) return ui.addMessage('error', `Unknown evaluation suite: ${suite}`);
     try {
-        const text = await fetch(path).then(r => r.text());
-        const cases = text.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
+        const data = await fetch(`http://127.0.0.1:8100/api/eval-cases?suite=${encodeURIComponent(path)}`).then(r => r.json());
+        if (data.error) throw new Error(data.error);
+        const cases = data.cases || [];
         const runId = crypto.randomUUID();
         const reportStatus = (payload) => fetch('http://127.0.0.1:8170/api/real-status', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ run_id: runId, suite, total: cases.length, ...payload })

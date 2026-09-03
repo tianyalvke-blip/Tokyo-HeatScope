@@ -147,6 +147,30 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _eval_cases(self):
+        """Return only the allow-listed evaluation cases to the browser."""
+        from urllib.parse import parse_qs, urlparse
+        suite = parse_qs(urlparse(self.path).query).get("suite", ["core"])[0]
+        files = {
+            "core": PROJECT_ROOT / "evals" / "cases" / "lstagent_core_en.jsonl",
+            "multiturn": PROJECT_ROOT / "evals" / "cases" / "lstagent_multiturn_en.jsonl",
+            "golden": PROJECT_ROOT / "evals" / "cases" / "golden.jsonl",
+        }
+        path = files.get(suite)
+        if not path or not path.is_file():
+            body = json.dumps({"error": "unknown evaluation suite"}).encode("utf-8")
+            status = 404
+        else:
+            rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            body = json.dumps({"suite": suite, "cases": rows}, ensure_ascii=False).encode("utf-8")
+            status = 200
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _gzip_response(self, resolved, ctype):
         """Serve a text/json file gzipped if the client accepts gzip.
 
@@ -229,6 +253,9 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         return f
 
     def do_GET(self):
+        if self.path.startswith("/api/eval-cases"):
+            self._eval_cases()
+            return
         # /api/geocode — server-side proxy to Nominatim so the browser never
         # touches OSM directly (blocked/slow in some networks, e.g. mainland
         # China). Forward query params; return JSON verbatim with CORS.
