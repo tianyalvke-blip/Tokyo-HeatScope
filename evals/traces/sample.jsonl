@@ -1,0 +1,3 @@
+{"case_id":"map_001","tool_calls":[{"name":"show_layer","args":{"layer_id":"tokyo-lst/day-lst"}}],"final_answer":"已显示东京昼间LST。LST是地表温度。","latency_ms":420,"error":null}
+{"case_id":"sql_001","tool_calls":[{"name":"get_stac_details","args":{"dataset_id":"tokyo-lst"}},{"name":"query","args":{"sql_query":"SELECT AVG(day_lst) AS avg_day FROM tokyo_lst_grid"}}],"final_answer":"东京昼间LST平均值为 34.2 °C。","latency_ms":810,"error":null}
+{"case_id":"spatial_001","tool_calls":[{"name":"local_moran","args":{"column":"day_lst"}},{"name":"create_result_layer","args":{"analysis_id":"local_moran_day_lst_demo"}}],"final_answer":"结果显示存在昼间LST的空间聚集，包括HH集群。该结果描述空间模式，不代表因果关系。","latency_ms":1200,"error":null}

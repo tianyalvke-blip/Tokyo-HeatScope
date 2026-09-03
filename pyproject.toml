@@ -1,0 +1,36 @@
+[project]
+name = "glen-lst-agent"
+version = "2.0.0"
+description = "Tokyo HeatScope geospatial Agent and evaluation workspace"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "duckdb>=1.4,<2",
+  "fastmcp>=2,<5",
+  "pyarrow>=18,<26",
+]
+
+[project.optional-dependencies]
+spatial = [
+  "numpy>=2",
+  "pandas>=2",
+  "scipy>=1.14",
+  "scikit-learn>=1.5",
+  "geopandas>=1",
+  "libpysal>=4",
+  "esda>=2",
+  "shapely>=2",
+  "pyproj>=3",
+]
+ingest = [
+  "pdfplumber>=0.11",
+  "pdfminer.six>=2025",
+]
+eval = [
+  "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+
+[tool.uv]
+default-groups = []

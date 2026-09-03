@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GLEN Agent Eval Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">LST AGENT v2.0</div>
+      <h1>Agent 评测面板</h1>
+      <p>检查工具轨迹、最终回答和规则评测结果。</p>
+    </div>
+    <div class="actions">
+      <label>轨迹文件 <select id="traceSelect"></select></label>
+      <button id="runBtn">运行评测</button>
+      <a id="jsonLink" class="button secondary" download="eval-report.json">导出 JSON</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="cards" id="summaryCards"></section>
+    <section class="panel">
+      <div class="panel-head"><h2>分类结果</h2><span id="sourceLabel"></span></div>
+      <div id="categoryBars" class="category-bars"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>用例详情</h2>
+        <label class="filter">筛选 <select id="statusFilter"><option value="all">全部</option><option value="failed">失败</option><option value="passed">通过</option></select></label>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>状态</th><th>ID</th><th>类别</th><th>工具轨迹</th><th>耗时</th><th>失败原因</th></tr></thead><tbody id="resultsBody"></tbody></table></div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
