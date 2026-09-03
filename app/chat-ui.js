@@ -192,8 +192,9 @@ export class ChatUI {
         // If in user-provided API key mode, add settings button
         if (this.config._userProvidedMode) {
             this.initSettingsUI();
-            // If no API key saved yet, show the setup prompt
-            if (!this.config.llm_models?.length) {
+            // A proxy configuration may already provide a model list. Only
+            // open the panel automatically when the user has no local key.
+            if (!localStorage.getItem('geo-agent-api-key') && this.config.llm?.user_provided) {
                 this.showSettingsPanel();
             }
         }
@@ -559,7 +560,11 @@ export class ChatUI {
 
         this.config.llm_models = models;
         this.config.llm_model = models[0]?.value;
+        // A local key means this browser should call the configured provider
+        // directly instead of posting to the server-side proxy.
+        this.config.llm.proxy = false;
         this.agent.config = this.config;
+        this.agent.llmProxy = false;
         this.agent.selectedModel = this.config.llm_model;
         this.populateModelSelector();
     }

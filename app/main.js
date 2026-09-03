@@ -68,6 +68,9 @@ async function main() {
         }));
         appConfig.llm_model = appConfig.llm_models[0]?.value || appConfig.llm_model;
     }
+    // Always expose the local API settings panel. When a key is entered,
+    // ChatUI switches this browser session to direct provider access.
+    appConfig._userProvidedMode = true;
     console.log('[main] Config loaded');
 
     /* ── 1b. Build UI chrome (layout-manager owns floating vs sidebar) ─── */
@@ -478,6 +481,17 @@ async function main() {
     }
 
     console.log('[main] UI ready – app fully loaded');
+
+    // Evaluation entry point: the v2 dashboard can open the real Agent with
+    // one prompt preloaded. This keeps the interaction on the production UI
+    // and uses the endpoint configured in app/config.json.
+    const evalPrompt = new URLSearchParams(window.location.search).get('eval_prompt');
+    if (evalPrompt) {
+        setTimeout(() => {
+            ui.inputEl.value = evalPrompt;
+            ui.handleSend();
+        }, 350);
+    }
 
     // Debug/test handle — lets automated tests drive the app from the console.
     window.__glen = { mapManager, catalog, toolRegistry, agent, mcp, resultLayerManager };
