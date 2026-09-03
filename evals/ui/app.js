@@ -62,6 +62,13 @@ async function openAgent() {
   window.location.href = `http://127.0.0.1:8100/?eval_prompt=${encodeURIComponent(prompt)}`;
 }
 
+function runRealSuite() {
+  const suite = $('suiteSelect').value;
+  const label = suite === 'multiturn' ? 'Multi-turn（20 组）' : suite === 'core' ? 'Core（60 题）' : 'Golden（31 题）';
+  if (!confirm(`将使用当前浏览器中保存的 API Key 执行 ${label}，确定继续吗？`)) return;
+  window.location.href = `http://127.0.0.1:8100/?eval_suite=${encodeURIComponent(suite)}`;
+}
+
 async function run() {
   $('runBtn').disabled = true; $('runBtn').textContent = '评测中…';
   try {
@@ -77,4 +84,5 @@ async function run() {
 $('runBtn').addEventListener('click', run); $('statusFilter').addEventListener('change', renderRows);
 $('suiteSelect').addEventListener('change', () => loadCases().catch(err => toast(`无法加载用例：${err.message}`)));
 $('openAgentBtn').addEventListener('click', openAgent);
+$('runRealBtn').addEventListener('click', runRealSuite);
 Promise.all([loadTraces(), loadCases()]).then(run).catch(err => toast(`无法加载评测数据：${err.message}`));

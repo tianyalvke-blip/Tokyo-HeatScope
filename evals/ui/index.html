@@ -14,6 +14,10 @@
       <p>检查工具轨迹、最终回答和规则评测结果。</p>
     </div>
     <div class="actions">
+      <label>测试集 <select id="suiteSelect"><option value="core">Core（60）</option><option value="multiturn">Multi-turn（20）</option><option value="golden">Golden（31）</option></select></label>
+      <label>交互用例 <select id="caseSelect"></select></label>
+      <button id="openAgentBtn" class="secondary">打开真实 Agent</button>
+      <button id="runRealBtn" class="primary">运行整套真实 Agent</button>
       <label>轨迹文件 <select id="traceSelect"></select></label>
       <button id="runBtn">运行评测</button>
       <a id="jsonLink" class="button secondary" download="eval-report.json">导出 JSON</a>
