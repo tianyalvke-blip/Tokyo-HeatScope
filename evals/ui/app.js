@@ -44,6 +44,24 @@ async function loadTraces() {
   $('traceSelect').innerHTML = data.traces.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
 }
 
+async function loadCases() {
+  const suite = $('suiteSelect').value;
+  const data = await fetch(`/api/cases?suite=${encodeURIComponent(suite)}`).then(r => r.json());
+  $('caseSelect').innerHTML = data.cases.map(x => `<option value="${escapeHtml(x.id)}">${escapeHtml(x.id)} · ${escapeHtml(x.label.slice(0, 100))}</option>`).join('');
+}
+
+async function openAgent() {
+  const suite = $('suiteSelect').value;
+  const id = $('caseSelect').value;
+  const data = await fetch(`/api/cases?suite=${encodeURIComponent(suite)}`).then(r => r.json());
+  const item = data.cases.find(x => x.id === id);
+  if (!item) return toast('找不到测试用例');
+  const prompt = item.label.split(' / ')[0];
+  // Same-tab navigation is reliable in the embedded browser and keeps this a
+  // true one-click entry point. The browser Back button returns to the panel.
+  window.location.href = `http://127.0.0.1:8100/?eval_prompt=${encodeURIComponent(prompt)}`;
+}
+
 async function run() {
   $('runBtn').disabled = true; $('runBtn').textContent = '评测中…';
   try {
@@ -57,4 +75,6 @@ async function run() {
 }
 
 $('runBtn').addEventListener('click', run); $('statusFilter').addEventListener('change', renderRows);
-loadTraces().then(run).catch(err => toast(`无法加载轨迹：${err.message}`));
+$('suiteSelect').addEventListener('change', () => loadCases().catch(err => toast(`无法加载用例：${err.message}`)));
+$('openAgentBtn').addEventListener('click', openAgent);
+Promise.all([loadTraces(), loadCases()]).then(run).catch(err => toast(`无法加载评测数据：${err.message}`));
