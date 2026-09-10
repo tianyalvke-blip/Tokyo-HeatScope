@@ -1,0 +1,14 @@
+/* Directly transcribed from the Pixso export's measured desktop tokens. */
+@font-face{font-family:'HeatScope Noto';font-style:normal;font-weight:100 900;src:url('assets/fonts/NotoSansSC-VariableFont_wght.ttf') format('truetype');font-display:swap}
+
+body,.ask input,.ask button,.chips button,.button,.nav nav a{font-family:'HeatScope Noto',Manrope,Arial,sans-serif}
+.nav{max-width:1280px;height:78px;margin:0 auto;padding-left:44px;padding-right:44px;position:sticky}.nav nav{position:static;transform:none;gap:30px}.nav nav a{font-size:13px;color:#f4f2ed}.nav .button.small{padding:8.8px 12.8px;gap:16px;font-size:13px}
+
+/* The source Frame has a 1280 px canvas, 44 px side gutters, and 365 px hero. */
+.hero.hero-text{max-width:1280px;min-height:365px;padding:88.8px 44px 52.8px}.hero.hero-text>div{max-width:790px}.hero.hero-text .eyebrow{margin-bottom:17.1px}.hero h1{max-width:none;font-family:'HeatScope Noto',Manrope,sans-serif;font-size:76px;line-height:1.2;letter-spacing:-3.7px}.hero h1 em{font-family:'HeatScope Noto',Manrope,sans-serif;font-weight:500;color:#d7d3ca}
+
+.ask-wrap{max-width:1100px;padding-left:28px;padding-right:28px;margin-bottom:125px}.ask{min-height:0;padding:6.8px 7.8px 6.8px 16.8px;border-radius:6px}.ask input{font-size:14px;padding:12.2px 13px 13px;color:#f4f2ed}.ask button{min-height:0;padding:12.8px 15px 12px;font-size:12px}.chips{margin-top:12px}.chips button{padding:6.6px 9.8px 5.8px;font-size:11px}.ask-context{max-width:680px;margin-top:12.4px}.ask-context p{font-size:13px;line-height:21.45px}.ask-context p:last-child{font-size:11px;letter-spacing:.385px}
+
+.content{padding-top:105px;padding-bottom:105px}.section h2,.section-head h2,.workflow h2,.intelligence h2,.final h2,.analyze-detail h2{font-family:'HeatScope Noto',Manrope,sans-serif;font-size:49.7px;line-height:1.12;letter-spacing:-3.7px}.feature{min-height:305px}.explore-zone{min-height:707.95px}.analyze-detail h3,.feature h3,.official-knowledge h3{font-family:'HeatScope Noto',Manrope,sans-serif}
+
+@media(max-width:800px){.nav{height:65px;padding-left:20px;padding-right:20px}.hero.hero-text{min-height:340px;padding:66px 20px 31px}.hero h1{font-size:clamp(46px,11vw,62px);line-height:1.12;letter-spacing:-.07em}.ask-wrap{margin-bottom:75px}.section h2,.section-head h2,.workflow h2,.intelligence h2,.final h2,.analyze-detail h2{font-size:36px;letter-spacing:-.06em}.explore-zone{min-height:0}}

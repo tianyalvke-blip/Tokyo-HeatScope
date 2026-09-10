@@ -29,6 +29,7 @@ import sys
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_WEB_ROOT = PROJECT_ROOT / "app"
@@ -50,7 +51,12 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
 
         Order: web root first, then extra roots (e.g. external basemap dir).
         """
-        clean = url_path.split("?", 1)[0].split("#", 1)[0]
+        request = urlsplit(url_path)
+        clean = request.path
+        # The public root is the marketing page; the previous map workbench is
+        # retained at the explicit, bookmarkable `/?mode=map` entry point.
+        if clean == "/" and parse_qs(request.query).get("mode", [""])[0] == "map":
+            clean = "/map.html"
         try:
             Path(clean).relative_to("/")
         except ValueError:

@@ -1,0 +1,246 @@
+/* Pixso proportions for the existing interactive home. Presentation only. */
+:root {
+  --pixso-width: 1280px;
+  --pixso-gutter: 44px;
+  --pixso-line: #353532;
+  --pixso-panel: #151514;
+  --pixso-red: #d85b48;
+  --pixso-page-inset: max(var(--pixso-gutter), calc((100vw - var(--pixso-width)) / 2 + var(--pixso-gutter)));
+}
+
+main { overflow: hidden; }
+
+.nav, .section, .content, footer {
+  max-width: var(--pixso-width);
+}
+
+.section, .content {
+  padding-left: var(--pixso-gutter);
+  padding-right: var(--pixso-gutter);
+}
+
+.section-head, .explore-zone, .analysis-lead, .analysis-workflow,
+.intelligence-grid, .official-knowledge {
+  max-width: var(--pixso-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.features { width: 100%; }
+
+.nav-actions { display: flex; align-items: center; gap: 14px; }
+.language-toggle {
+  min-width: 38px;
+  padding: 7px 9px;
+  border: 1px solid #454541;
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f2ed;
+  font: 500 10px "DM Mono", monospace;
+  letter-spacing: .5px;
+  cursor: pointer;
+}
+.language-toggle:hover { border-color: var(--pixso-red); color: #e0705e; }
+
+/* Keep the visual weight of each large visual aligned to the shared right edge. */
+.explore-zone { grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); }
+.explore-art { justify-self: end; }
+.rf-panel { width: 100%; justify-self: end; }
+
+/* Keep the explanatory copy and evidence panel visually connected. */
+#evidence .intelligence-grid {
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+  gap: 56px;
+}
+
+@media (max-width: 900px) {
+  #evidence .intelligence-grid { gap: 40px; }
+}
+
+@media (max-width: 600px) {
+  #evidence .intelligence-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+/* Pixso analysis layout: heading and statement, followed by a clean evidence chain. */
+.analyze-detail {
+  background: #10100f;
+  border-top: 1px solid var(--pixso-line);
+  border-bottom: 1px solid var(--pixso-line);
+}
+
+.analyze-detail > .section { padding-top: 95px; padding-bottom: 95px; }
+
+.analyze-detail .analysis-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 430px);
+  align-items: end;
+  gap: 52px;
+  min-height: 168px;
+  margin: 0;
+}
+
+.analyze-detail .analysis-lead > p {
+  max-width: 366px;
+  margin: 0 0 2px auto;
+  color: #b5b2aa;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.analyze-detail .analysis-workflow { margin: 52px 0 0; }
+.analyze-detail .analysis-workflow-head { display: none; }
+
+.analyze-detail .steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  margin: 0;
+}
+
+.analyze-detail .steps > i { display: none; }
+
+.analyze-detail .steps > div {
+  width: auto;
+  min-height: 96px;
+  padding: 8px 22px 15px;
+  border-left: 1px solid #44443f;
+}
+
+.analyze-detail .steps > div:first-child { padding-left: 0; border-left: 0; }
+.analyze-detail .steps span { color: #e0705e; }
+.analyze-detail .steps h3 { margin: 14px 0 3px; color: #f4f2ed; font-size: 15px; }
+.analyze-detail .steps p { max-width: 180px; margin: 0; color: #b5b2aa; font-size: 12px; line-height: 1.5; }
+
+/* Pixso's plan composition: 3D model on the left, scenario logic on the right. */
+.scenario-composition {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(360px, .78fr);
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  column-gap: 44px;
+  background: var(--pixso-panel);
+  border-top: 1px solid var(--pixso-line);
+  border-bottom: 1px solid var(--pixso-line);
+}
+
+.scenario-composition .live-scenario {
+  order: 1;
+  margin: 0;
+  padding: 105px 0 35px;
+  background: transparent;
+  border: 0;
+}
+
+.scenario-composition #plan {
+  order: 2;
+  margin: 0;
+  background: transparent;
+  border: 0;
+}
+
+.scenario-composition .live-scenario > .section {
+  height: 100%;
+  max-width: none;
+  padding: 0 0 0 var(--pixso-page-inset);
+}
+
+.scenario-composition #plan > .content {
+  height: 100%;
+  max-width: none;
+  padding: 105px var(--pixso-page-inset) 35px 0;
+}
+
+.scenario-composition .intelligence-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  gap: 22px;
+}
+
+.scenario-composition .intelligence-grid > div:first-child { max-width: 420px; }
+
+.scenario-composition .intelligence-grid h2 {
+  margin: 13px 0 14px;
+  font-size: clamp(36px, 3.45vw, 49.7px);
+  line-height: 1.12;
+}
+
+.scenario-composition .intelligence-grid > div:first-child > p:not(.eyebrow) {
+  margin: 0;
+  color: #b5b2aa;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.scenario-composition .pipeline {
+  width: 100%;
+  max-width: 462px;
+  margin-top: auto;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.scenario-composition .pipeline > div {
+  max-width: none;
+  padding: 11px 15px;
+  border-radius: 0;
+  background: #0c0c0b;
+}
+
+.scenario-composition .pipeline .planner { background: #292824; }
+.scenario-composition .pipeline .result { background: var(--pixso-red); }
+.scenario-composition .pipeline > i { padding: 7px 15px; color: var(--pixso-red); }
+.scenario-composition .pipeline small { margin-top: 13px; }
+
+.scenario-composition .scenario-model-title { margin: 0 0 16px; }
+.scenario-composition .scenario-model-title h3 {
+  font-family: "HeatScope Noto", Manrope, sans-serif;
+  font-size: 22px;
+}
+
+.scenario-composition .viewer-wrap {
+  height: 468px;
+  max-width: none;
+  margin: 0;
+  border-color: #343431;
+}
+
+.scenario-composition .viewer-note {
+  right: 0;
+  bottom: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .nav-actions { gap: 8px; }
+  .scenario-composition { grid-template-columns: 1fr; }
+  .scenario-composition .live-scenario { padding: 70px 0 0; }
+  .analyze-detail .analysis-lead { grid-template-columns: 1fr; gap: 20px; min-height: 0; }
+  .analyze-detail .analysis-lead > p { margin-left: 0; }
+  .analyze-detail .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
+  .analyze-detail .steps > div:nth-of-type(3) { padding-left: 0; border-left: 0; }
+  .scenario-composition { column-gap: 0; }
+  .scenario-composition .live-scenario > .section { padding: 0 var(--pixso-gutter); }
+  .scenario-composition #plan > .content { padding: 50px var(--pixso-gutter) 70px; }
+  .scenario-composition .viewer-wrap { height: 400px; }
+}
+
+@media (max-width: 600px) {
+  :root { --pixso-gutter: 20px; }
+  .scenario-composition .live-scenario { padding-top: 52px; }
+  .scenario-composition #plan > .content { padding-top: 42px; padding-bottom: 52px; }
+  .scenario-composition .viewer-wrap { height: 300px; }
+  .scenario-composition .intelligence-grid h2 { font-size: 36px; }
+  .nav-actions .button.small { display: none; }
+  .analyze-detail .steps { grid-template-columns: 1fr; row-gap: 0; }
+  .analyze-detail .steps > div { padding: 16px 0; border-left: 0; border-top: 1px solid #44443f; }
+  .analyze-detail .steps > div:first-child { border-top: 0; }
+}
