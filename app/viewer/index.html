@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PLATEAU Building 3D Viewer</title>
+  <link rel="icon" href="data:," />
+  <script src="/vendor/maplibre-gl.js"></script>
+  <link href="/vendor/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ink: #16313a;
+      --muted: #71858d;
+      --panel: rgba(255, 255, 255, 0.95);
+      --line: #dce7e9;
+      --accent: #14a89a;
+    }
+    * { box-sizing: border-box; }
+    html, body, #map { width: 100%; height: 100%; margin: 0; }
+    body { overflow: hidden; background: #eef4f5; color: var(--ink); }
+    #map { position: fixed; inset: 0; }
+    .panel {
+      position: fixed;
+      z-index: 2;
+      top: 18px;
+      left: 18px;
+      width: min(330px, calc(100vw - 36px));
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 18px 48px rgba(31, 68, 78, .15);
+      backdrop-filter: blur(14px);
+    }
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
+    .subtitle { margin: 7px 0 15px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    form { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    input:not([type="range"]), button {
+      min-height: 39px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      font: inherit;
+    }
+    input:not([type="range"]) { min-width: 0; padding: 0 11px; background: #f7fafb; color: var(--ink); }
+    input:focus-visible, button:focus-visible { outline: 2px solid rgba(20,168,154,.28); outline-offset: 2px; }
+    button { padding: 0 14px; cursor: pointer; border-color: #14a89a; background: #14a89a; color: #fff; font-weight: 760; }
+    button:hover { background: #0f9185; }
+    button:disabled { cursor: wait; opacity: .6; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 12px; }
+    .metric { padding: 9px 8px; border: 1px solid var(--line); border-radius: 9px; background: #f8fbfb; }
+    .metric span { display: block; color: var(--muted); font-size: 10px; }
+    .metric strong { display: block; margin-top: 3px; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .height-control { margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .control-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .control-heading h2 { margin: 0; font-size: 12px; letter-spacing: .01em; }
+    .scale-value { color: var(--accent); font-size: 16px; font-variant-numeric: tabular-nums; }
+    #height-scale { width: 100%; height: 24px; margin: 9px 0 0; cursor: ew-resize; accent-color: var(--accent); }
+    #height-scale:disabled { cursor: wait; opacity: .45; }
+    .range-labels { display: flex; justify-content: space-between; margin-top: -2px; color: var(--muted); font-size: 10px; }
+    .height-metrics { display: grid; grid-template-columns: 1fr 1fr .72fr; gap: 7px; margin-top: 11px; }
+    .height-metrics .metric { min-width: 0; }
+    .reset-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .reset-button { min-height: 32px; padding: 0 12px; border-color: var(--line); background: transparent; color: var(--ink); font-size: 11px; font-weight: 650; }
+    .reset-button:hover { border-color: var(--accent); background: rgba(20,168,154,.07); }
+    .coverage-block { margin-top: 11px; border: 1px solid var(--line); border-radius: 9px; background: #f8fbfb; padding: 8px 10px; }
+    .coverage-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; font-size: 11px; }
+    .coverage-row span { color: var(--muted); }
+    .coverage-row strong { font-variant-numeric: tabular-nums; }
+    .gap-note { margin: 8px 1px 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
+    .debug-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+    .debug-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink); cursor: pointer; }
+    .debug-toggle input { accent-color: var(--accent); cursor: pointer; }
+    .debug-toggle:disabled { cursor: wait; opacity: .5; }
+    .cluster-form { grid-template-columns: 1fr 58px auto; margin-top: 8px; }
+    #status { margin: 12px 1px 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    #status[data-state="error"] { color: #ff9d93; }
+    .maplibregl-popup-content { border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); box-shadow: 0 12px 35px rgba(31,68,78,.18); }
+    .maplibregl-popup-tip { border-top-color: #fff !important; }
+    body.embedded { background: #0b0b0b; }
+    body.embedded .panel { display: none; }
+    body.embedded .maplibregl-ctrl-group { box-shadow: none; opacity: .68; }
+    .popup-title { max-width: 260px; margin-bottom: 7px; color: var(--accent); font: 700 11px/1.35 ui-monospace, monospace; overflow-wrap: anywhere; }
+    .popup-row { display: flex; justify-content: space-between; gap: 18px; margin-top: 3px; font-size: 12px; }
+    .popup-row span { color: var(--muted); }
+    @media (max-width: 520px) {
+      .panel { top: 10px; left: 10px; width: calc(100vw - 20px); padding: 13px; }
+      .subtitle { display: none; }
+      .metrics { margin-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="map" aria-label="Interactive 3D building map"></div>
+  <section class="panel" aria-label="Building viewer controls">
+    <p class="eyebrow">Project PLATEAU · Tokyo 2020</p>
+    <h1>Building 3D Viewer</h1>
+    <p class="subtitle">Complete footprints extruded by measured building height. Drag to rotate, scroll to zoom, and click a building to inspect it.</p>
+    <form id="grid-form">
+      <label for="grid-id" hidden>Grid ID</label>
+      <input id="grid-id" name="grid_id" type="number" min="1" step="1" inputmode="numeric" placeholder="Grid ID" required />
+      <button id="load-button" type="submit">Load grid</button>
+    </form>
+    <form id="cluster-form" class="cluster-form">
+      <input id="seed-grid" name="seed_grid" type="number" min="1" step="1" inputmode="numeric" placeholder="Seed grid" />
+      <input id="grid-count" name="grid_count" type="number" min="2" max="400" step="1" value="30" aria-label="Grid count" />
+      <button id="cluster-load-button" type="submit">Adjacent ×N</button>
+    </form>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span>Study Area</span><strong id="metric-grid">—</strong></div>
+      <div class="metric"><span>Buildings</span><strong id="metric-count">—</strong></div>
+      <div class="metric"><span>Measured</span><strong id="metric-measured">—</strong></div>
+    </div>
+    <section class="height-control" aria-labelledby="height-control-title">
+      <div class="control-heading">
+        <h2 id="height-control-title">Building Height</h2>
+        <strong id="scale-value" class="scale-value">1.00×</strong>
+      </div>
+      <label for="height-scale" hidden>Height scale</label>
+      <input id="height-scale" type="range" min="0.5" max="2" step="0.05" value="1" disabled />
+      <div class="range-labels" aria-hidden="true"><span>0.5×</span><span>2.0×</span></div>
+      <div class="height-metrics" aria-live="polite">
+        <div class="metric"><span>Original Avg</span><strong id="original-average">—</strong></div>
+        <div class="metric"><span>Scenario Avg</span><strong id="scenario-average">—</strong></div>
+        <div class="metric"><span>Change</span><strong id="height-change">0%</strong></div>
+      </div>
+      <div class="reset-row"><button id="reset-height" class="reset-button" type="button" disabled>Reset height</button></div>
+    </section>
+    <section class="height-control" aria-labelledby="footprint-control-title">
+      <div class="control-heading">
+        <h2 id="footprint-control-title">Building Footprint</h2>
+        <strong id="fp-scale-value" class="scale-value">1.00×</strong>
+      </div>
+      <label for="area-scale" hidden>Area scale</label>
+      <input id="area-scale" type="range" min="1" max="2" step="0.05" value="1" disabled />
+      <div class="range-labels" aria-hidden="true"><span>1.00×</span><span>2.00×</span></div>
+      <div class="height-metrics" aria-live="polite">
+        <div class="metric"><span>Requested Change</span><strong id="fp-requested-change">—</strong></div>
+        <div class="metric"><span>Achieved Change</span><strong id="fp-achieved-change">—</strong></div>
+        <div class="metric"><span>Min Gap</span><strong id="fp-min-gap">1.0 m</strong></div>
+      </div>
+      <div class="coverage-block" aria-live="polite">
+        <div class="coverage-row"><span>Original Footprint Area</span><strong id="fp-original-area">—</strong></div>
+        <div class="coverage-row"><span>Requested</span><strong id="fp-requested-area">—</strong></div>
+        <div class="coverage-row"><span>Achieved</span><strong id="fp-achieved-area">—</strong></div>
+        <div class="coverage-row"><span>Area Change</span><strong id="fp-area-change">—</strong></div>
+      </div>
+      <p class="gap-note">Minimum Building Gap is a simulation constraint, not a Tokyo legal requirement.</p>
+      <div class="debug-row">
+        <label class="debug-toggle" for="territory-toggle"><input id="territory-toggle" type="checkbox" disabled /> Growth territories</label>        <label class="debug-toggle" for="grid-toggle"><input id="grid-toggle" type="checkbox" disabled /> Grid outline</label>
+        <button id="reset-footprint" class="reset-button" type="button" disabled>Reset footprint</button>
+      </div>
+    </section>
+    <p id="status">Preparing the building layer…</p>
+  </section>
+  <script type="module" src="viewer.js"></script>
+</body>
+</html>
