@@ -67,6 +67,7 @@ duck.db
 
 # Local handoff notes may contain private deployment details
 HANDOFF.md
+app/_local-ui-backup-*/
 
 # Superpowers brainstorming / mockups
 .superpowers/
