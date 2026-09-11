@@ -103,14 +103,55 @@ export class ResultLayerManager {
         return [lo, hi];
     }
 
+    /**
+     * Normalize categorical metadata from both supported server contracts:
+     * - { HH: '#d73027', LL: '#4575b4' }
+     * - [{ value: 'high', label: 'High', color: '#d73027' }]
+     *
+     * MapLibre's `match` expression needs alternating primitive values and
+     * colors. Object.entries() on the array form instead produces numeric
+     * indices and whole objects, which invalidates the fill paint.
+     */
+    _categoryEntries(categories, colors = null) {
+        if (Array.isArray(categories)) {
+            // SQL results may provide parallel contracts such as
+            // categories: ['HH', 'HM'] plus colors: { HH: '#…', HM: '#…' }.
+            // Treat those primitive entries as valid category values.
+            if (categories.every(c => typeof c === 'string' || typeof c === 'number')) {
+                return categories.map(value => ({
+                    value,
+                    label: String(value),
+                    color: (colors && typeof colors[value] === 'string') ? colors[value] : '#cccccc',
+                }));
+            }
+            return categories
+                .filter(c => c && (typeof c.value === 'string' || typeof c.value === 'number') && typeof c.color === 'string')
+                .map(c => ({ value: c.value, label: c.label || String(c.value), color: c.color }));
+        }
+        return Object.entries(categories || {})
+            .filter(([value, color]) => (typeof value === 'string' || typeof value === 'number') && typeof color === 'string')
+            .map(([value, color]) => ({ value, label: String(value), color }));
+    }
+
     _buildStyle(viz, records) {
         const type = viz?.type || 'binary';
         const field = viz?.field || 'grid_id';
-        const opacity = 0.78;
+        // Both `color` and `colors` occur in server-produced categorical
+        // metadata. Keep the rendering contract tolerant while the analysis
+        // producer evolves.
+        const categoryColors = viz?.colors || viz?.color || null;
+        // Categorical analysis maps are intended to be read as their own
+        // evidence layer. Keep them near-opaque by default so the active raw
+        // LST layer beneath cannot make a 9-class result look transparent.
+        // An analysis may still request a different value explicitly.
+        const opacity = (typeof viz.opacity === 'number') ? viz.opacity : (type === 'categorical' ? 0.92 : 0.78);
         if (type === 'categorical') {
-            const cats = viz.categories || {};
+            const entries = this._categoryEntries(viz.categories, categoryColors);
+            if (entries.length === 0) {
+                return { paint: { 'fill-color': '#cccccc', 'fill-opacity': opacity }, stats: { range: null, colors: null } };
+            }
             const stops = [];
-            for (const [k, c] of Object.entries(cats)) stops.push(k, c);
+            for (const { value, color } of entries) stops.push(value, color);
             return {
                 paint: {
                     'fill-color': ['match', ['get', field], ...stops, '#cccccc'],
@@ -183,6 +224,7 @@ export class ResultLayerManager {
 
         const isCategorical = viz.type === 'categorical';
         const isContinuous = viz.type === 'continuous' || viz.type === 'diverging';
+        const categoryEntries = isCategorical ? this._categoryEntries(viz.categories, viz.colors || viz.color) : [];
 
         const config = {
             layerId: existingId,
@@ -204,7 +246,7 @@ export class ResultLayerManager {
             legendLabel: isContinuous ? viz.field : null,
             legendType: isCategorical ? 'categorical' : (isContinuous ? 'continuous' : null),
             legendClasses: isCategorical
-                ? Object.entries(viz.categories || {}).map(([k, c]) => ({ name: k, 'color-hint': c }))
+                ? categoryEntries.map(({ label, color }) => ({ name: label, 'color-hint': color }))
                 : null,
             legendRange: isContinuous ? stats.range : null,
             legendGradient: isContinuous ? stats.colors : null,

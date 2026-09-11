@@ -58,6 +58,7 @@ let originalAvgHeight = 0;
 let heightScale = 1;
 let footprintPack = null;
 let areaScale = 1;
+let demoRemovedIds = new Set();
 let activePopup = null;
 let activePopupProperties = null;
 let polygonTerritories = null;
@@ -246,9 +247,24 @@ function buildScenarioData() {
       geometry = building.original_geometry;
       properties.original_area_m2 = building.original_area_m2;
     }
+    properties.demo_removed = isEmbedded && demoRemovedIds.has(building.properties.building_id);
     features.push({ type: 'Feature', geometry, properties });
   }
   return { type: 'FeatureCollection', features };
+}
+
+function randomizeEmbeddedBuildings() {
+  if (!isEmbedded || !footprintPack) return;
+  const ids = Object.values(footprintPack.buildings)
+    .filter((building) => building.role === 'editable')
+    .map((building) => building.properties.building_id);
+  const count = Math.max(1, Math.round(ids.length * 0.10));
+  for (let i = ids.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  demoRemovedIds = new Set(ids.slice(0, count));
+  if (map.getSource(sourceId)) map.getSource(sourceId).setData(buildScenarioData());
 }
 
 async function loadPolygonTerritories(gridIds) {
@@ -476,11 +492,11 @@ function ensureLayers(data) {
       'fill-extrusion-base': 0,
       'fill-extrusion-color': isEmbedded ? roleCase(
         ['interpolate', ['linear'], ['get', 'display_height'],
-          0, '#7e4c45',
-          18, '#b65b4d',
-          45, '#dc775e',
-          100, '#f0b07e'],
-        '#4a4b4b'
+          0, '#f1f5f9',
+          18, '#dbe4ee',
+          45, '#b5c2d1',
+          100, '#8091a5'],
+        '#9aa9b8'
       ) : roleCase(
         ['interpolate', ['linear'], ['get', 'display_height'],
           0, '#d4ebe8',
@@ -491,17 +507,19 @@ function ensureLayers(data) {
       ),
       'fill-extrusion-opacity': 0.94,
       'fill-extrusion-vertical-gradient': true
-    }
+    },
+    filter: ['!=', ['get', 'demo_removed'], true]
   });
   map.addLayer({
     id: outlineLayerId,
     type: 'line',
     source: sourceId,
     paint: {
-      'line-color': roleCase('#6d98a0', '#8fa3aa'),
+      'line-color': roleCase('#4b5563', '#9ca3af'),
       'line-width': roleCase(0.65, 0.5),
       'line-opacity': roleCase(0.28, 0.15)
-    }
+    },
+    filter: ['!=', ['get', 'demo_removed'], true]
   });
 
   map.on('mouseenter', extrusionLayerId, () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -775,16 +793,18 @@ function startEmbeddedScenarioLoop() {
   if (!isEmbedded || !footprintPack) return;
   clearTimeout(embeddedLoopTimer);
   const steps = [
-    { height: 0.92, area: 1.05 },
-    { height: 1.05, area: 1.1 },
-    { height: 1.15, area: 1.15 }
+    { height: 0.85, area: 1.00 },
+    { height: 1.05, area: 1.10 },
+    { height: 1.25, area: 1.18 },
+    { height: 1.05, area: 1.10 },
+    { height: 0.85, area: 1.00 }
   ];
   let index = 0;
   const animateTo = (target, complete) => {
     const startHeight = heightScale;
     const startArea = areaScale;
     const startTime = performance.now();
-    const duration = 900;
+    const duration = 1200;
     const frame = (now) => {
       const progress = Math.min(1, (now - startTime) / duration);
       const eased = progress * progress * (3 - 2 * progress);
@@ -806,6 +826,7 @@ function startEmbeddedScenarioLoop() {
         areaSlider.value = String(areaScale);
         updateHeightScenario();
         updateFootprintScenario();
+        randomizeEmbeddedBuildings();
         complete();
       }
     };
@@ -815,7 +836,7 @@ function startEmbeddedScenarioLoop() {
     const step = steps[index];
     animateTo(step, () => {
       index = (index + 1) % steps.length;
-      embeddedLoopTimer = setTimeout(next, 220);
+      embeddedLoopTimer = setTimeout(next, 450);
     });
   };
   next();

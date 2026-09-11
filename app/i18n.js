@@ -34,8 +34,8 @@ const STRINGS = {
         ],
     },
     ja: {
-        brandTitle: '都市ヒートスコープ',
-        docTitle: '都市ヒートスコープ · 都市暑熱ジオエージェント',
+        brandTitle: 'Urban HeatScope',
+        docTitle: 'Urban HeatScope',
         placeholder: '東京のLSTについて質問…',
         sendBtn: '送信',
         showChat: 'チャットを表示',
@@ -57,8 +57,8 @@ const STRINGS = {
         ],
     },
     zh: {
-        brandTitle: '智慧城市热分析平台HeatScope',
-        docTitle: '智慧城市热分析平台HeatScope',
+        brandTitle: 'Urban HeatScope',
+        docTitle: 'Urban HeatScope',
         placeholder: '询问东京地表温度…',
         sendBtn: '发送',
         showChat: '显示聊天',

@@ -79,6 +79,20 @@ applyLanguage=function(lang){
     const exploreImage=document.querySelector('#explore img');
     if(exploreImage)exploreImage.alt='Layered exploration diagram showing Tokyo basemap, urban morphology, green and water cover, activity context, and daytime LST';
   }
+  const productFlow=document.querySelectorAll('.cal-product-flow > div');
+  const flowLabels=lang==='en' ? [['City data','LAYERS'],['LLM Agent','TOOLS + MODELS'],['Map evidence','MAP + GUIDANCE']] : [['城市数据','LAYERS'],['LLM Agent','TOOLS + MODELS'],['地图证据','MAP + GUIDANCE']];
+  productFlow.forEach((el,i)=>{if(flowLabels[i]){el.querySelector('b').textContent=flowLabels[i][0];el.querySelector('small').textContent=flowLabels[i][1]}});
+  const productCaption=document.querySelector('.cal-hero-product figcaption');
+  if(productCaption)productCaption.textContent=lang==='en'?'Conceptual workflow. Live analysis runs in the map workspace.':'概念工作流。真实分析在地图工作台运行。';
+  const finalHeading=document.querySelector('#start-question h2');
+  if(finalHeading)finalHeading.textContent=lang==='en'?'Start with a question.':'从一个问题开始。';
+  const importance=document.querySelector('#evidence .importance');
+  if(importance){
+    const labels=lang==='en'?['Water Ratio','Bldg Coverage Ratio','Road Length','Dist. to Coast','Avg. Height','Elevation Mean']:['水体比例','建筑覆盖率','道路长度','距海岸距离','平均高度','平均高程'];
+    const heading=importance.querySelector('b');
+    if(heading)heading.firstChild.textContent=lang==='en'?'Daytime RF feature importance ':'昼间 RF 特征重要度 ';
+    importance.querySelectorAll(':scope > span').forEach((el,i)=>{if(labels[i])el.firstChild.textContent=labels[i]+' ';const value=el.querySelector('em');if(value){const number=parseFloat(value.textContent);if(Number.isFinite(number))value.textContent=`${number.toFixed(2)}%`}});
+  }
 };
 const savedLanguage=(()=>{try{return localStorage.getItem('heatscope-language')}catch{return null}})();
 const languageToggle=document.querySelector('#languageToggle');if(languageToggle)languageToggle.addEventListener('click',()=>applyLanguage((document.documentElement.lang||'en').startsWith('en')?'zh':'en'));applyLanguage(savedLanguage||'en');

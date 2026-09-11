@@ -65,6 +65,9 @@ docs/.vitepress/cache/
 duck.db
 .streamlit
 
+# Local handoff notes may contain private deployment details
+HANDOFF.md
+
 # Superpowers brainstorming / mockups
 .superpowers/
 docs/superpowers/

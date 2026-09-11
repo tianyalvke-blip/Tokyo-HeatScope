@@ -1,6 +1,6 @@
 {
-    "title": "智慧城市热分析平台HeatScope",
-    "sidebar": { "title": "智慧城市热分析平台HeatScope" },
+    "title": "Urban HeatScope",
+    "sidebar": { "title": "Urban HeatScope" },
     "catalog": "data/catalog.json",
     "mcp_url": "http://127.0.0.1:8765/mcp",
     "titiler_url": "https://titiler.nrp-nautilus.io",
@@ -16,7 +16,7 @@
     "default_basemap": "tokyo",
     "basemap_flavor": "light",
     "custom_basemap": {
-        "pmtiles": "basemap/tokyo-osm-20260824-z15.pmtiles",
+        "pmtiles": "data/basemap/tokyo-osm-20260824-z15.pmtiles",
         "label": "Tokyo OSM"
     },
 

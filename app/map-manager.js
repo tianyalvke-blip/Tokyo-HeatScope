@@ -70,8 +70,26 @@ function protomapsBasemapStyle(pmtilesUrl, flavor = 'light') {
         maxzoom: 15,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     };
-    const bmLayers = layers('glen-basemap', namedFlavor(flavor), { lang: 'en' })
-        .filter(l => l.type !== 'background' && l.type !== 'symbol');
+    const waterFillColor = 'rgba(96, 112, 132, 0.90)';
+    const styledLayers = layers('glen-basemap', namedFlavor(flavor), { lang: 'en' })
+        .filter(l => l.type !== 'background' && l.type !== 'symbol')
+        .filter(l => !(l.type === 'line' && /water|river|stream|waterway/i.test(`${l.id} ${l['source-layer'] || ''}`)))
+        .map(layer => {
+            // Keep the analytical palette intact while giving the reference
+            // basemap a restrained, neutral water treatment.
+            if (!/^water(?:_|$)/.test(layer.id)) return layer;
+            if (layer.type === 'fill') {
+                return { ...layer, paint: { ...(layer.paint || {}), 'fill-color': waterFillColor, 'fill-outline-color': 'rgba(0,0,0,0)' } };
+            }
+            return layer;
+        });
+    // MapLibre draws later layers on top.  Move all water passes after roads
+    // so bays and rivers cleanly mask road geometry crossing the water.
+    const waterLayers = styledLayers.filter(layer => /^water(?:_|$)/.test(layer.id));
+    const bmLayers = [
+        ...styledLayers.filter(layer => !/^water(?:_|$)/.test(layer.id)),
+        ...waterLayers,
+    ];
     return { source, layers: bmLayers };
 }
 
@@ -922,6 +940,25 @@ export class MapManager {
     // ---- Styling ----
 
     /**
+     * Extract displayable classes from a MapLibre categorical match expression.
+     * This keeps a result layer's legend in sync when an agent creates the
+     * layer first and subsequently applies its categorical paint via set_style.
+     */
+    _legendClassesFromMatchExpression(value) {
+        if (!Array.isArray(value) || value[0] !== 'match' || value.length < 5) return null;
+        const classes = [];
+        // ["match", input, label1, color1, label2, color2, fallback]
+        for (let i = 2; i < value.length - 1; i += 2) {
+            const label = value[i];
+            const color = value[i + 1];
+            if ((typeof label === 'string' || typeof label === 'number') && typeof color === 'string') {
+                classes.push({ name: String(label), 'color-hint': color });
+            }
+        }
+        return classes.length ? classes : null;
+    }
+
+    /**
      * Apply paint properties to a layer.
      * @param {string} layerId 
      * @param {Object} paintProps - e.g. { 'fill-color': 'red', 'fill-opacity': 0.5 }
@@ -938,6 +975,7 @@ export class MapManager {
         // value-bearing `get` to the layer's real column before applying.
         const corrected = new Set();
         const results = [];
+        let categoricalLegendClasses = null;
         for (const [prop, rawValue] of Object.entries(paintProps)) {
             let value = rawValue;
             if (state.valueColumn) {
@@ -948,12 +986,25 @@ export class MapManager {
             try {
                 this.map.setPaintProperty(state.mapLayerId, prop, value);
                 results.push({ property: prop, success: true });
+                if (prop === 'fill-color') {
+                    categoricalLegendClasses = this._legendClassesFromMatchExpression(value);
+                }
             } catch (error) {
                 results.push({ property: prop, success: false, error: error.message });
             }
         }
 
         const failed = results.filter(r => !r.success).map(r => r.property);
+        if (categoricalLegendClasses) {
+            state.legendType = 'categorical';
+            state.legendClasses = categoricalLegendClasses;
+            const oldLegend = this._legendItems.get(layerId);
+            if (oldLegend) {
+                oldLegend.remove();
+                this._legendItems.delete(layerId);
+            }
+            if (state.visible) this._showLegend(layerId);
+        }
         const layerType = this.map.getLayer?.(state.mapLayerId)?.type;
         return {
             success: failed.length === 0,
@@ -1521,17 +1572,26 @@ export class MapManager {
         if (state?.visible && this._hasLegend(state)) this._showLegend(layerId);
     }
 
+    _isMobileLegendMode() {
+        return typeof window !== 'undefined'
+            && typeof window.matchMedia === 'function'
+            && window.matchMedia('(max-width: 760px)').matches;
+    }
+
     _ensureLegend() {
         const slot = document.getElementById('mobile-legend-slot');
+        const mobile = this._isMobileLegendMode();
+        const host = mobile && slot ? slot : document.body;
 
         // If the legend was already created (e.g. during a preload before the
         // mobile layer panel rendered) but is now detached from its intended
-        // host, re-mount it into the slot so mobile never shows a floating box.
+        // host, re-mount it. The mobile slot exists in desktop DOM too, but is
+        // hidden there, so it must only be used at the mobile breakpoint.
         if (this._legendEl) {
-            if (slot && this._legendEl.parentNode !== slot) {
-                slot.appendChild(this._legendEl);
-                this._legendEl.classList.add('inline');
+            if (this._legendEl.parentNode !== host) {
+                host.appendChild(this._legendEl);
             }
+            this._legendEl.classList.toggle('inline', mobile);
             return;
         }
 
@@ -1546,11 +1606,11 @@ export class MapManager {
         `;
         // On mobile the legend lives inline inside the layer panel's
         // select slot instead of as a free-floating box (see CSS).
-        if (slot) {
-            slot.appendChild(legend);
+        if (mobile && slot) {
+            host.appendChild(legend);
             legend.classList.add('inline');
         } else {
-            document.body.appendChild(legend);
+            host.appendChild(legend);
         }
         this._legendEl = legend;
         this._legendContent = legend.querySelector('#legend-content');
@@ -1589,7 +1649,7 @@ export class MapManager {
         // Mobile: the legend lives in the layer-picker slot and should show
         // ONLY the currently selected layer's legend. Hide every other
         // cached legend item before showing this one.
-        const mobile = !!document.getElementById('mobile-legend-slot');
+        const mobile = this._isMobileLegendMode();
         if (mobile) {
             for (const [lid, el] of this._legendItems) {
                 if (lid !== layerId) el.style.display = 'none';

@@ -1,0 +1,772 @@
+/*
+ * HeatScope / Cal-inspired UI, revision 2 (2026-09-10)
+ * Load AFTER the existing home or workspace stylesheets.
+ * Opt-in: <body class="cal-home"> or <body class="cal-workspace">.
+ *
+ * Presentation only: no map/canvas geometry, map paint, layer identifiers,
+ * visibility contracts, resize variables, API endpoints or JS overrides.
+ * !important is used only to beat legacy glass surfaces, vendor controls,
+ * reduced-motion effects and forced-colors fallbacks.
+ */
+:root {
+  --cal-ink: #101010;
+  --cal-paper: #f4f4f4;
+  --cal-white: #ffffff;
+  --cal-graphite: #242424;
+  --cal-body: #52525b;
+  --cal-slate: #626973; /* readable small text on both paper and white */
+  --cal-line: #e5e7eb;
+  --cal-line-strong: #d1d5db;
+  --cal-hover: #eeeeef;
+  --cal-radius-sm: 8px;
+  --cal-radius-md: 10px;
+  --cal-radius: 12px;
+  --cal-shadow: 0 1px 2px rgb(16 16 16 / 3%), 0 4px 8px rgb(16 16 16 / 4%);
+  --cal-shadow-float: 0 2px 4px rgb(16 16 16 / 4%), 0 6px 16px rgb(16 16 16 / 6%);
+  --cal-danger: #9f3333;
+  --cal-danger-bg: #fcf3f3;
+  --cal-danger-line: #e9cccc;
+  --cal-success: #326449;
+  --cal-success-bg: #f1f7f3;
+  --cal-success-line: #c9dfd1;
+  --cal-warning: #79551b;
+  --cal-warning-bg: #faf6ec;
+  --cal-font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Noto Sans", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --cal-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --cal-content: 1200px;
+  --cal-gutter: 32px;
+}
+
+/* 01. Shared visual language ------------------------------------------- */
+body.cal-home,
+body.cal-workspace {
+  background: var(--cal-paper);
+  color: var(--cal-ink);
+  color-scheme: light;
+  font-family: var(--cal-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body.cal-home { line-height: 1.6; }
+.cal-home :is(button, input, textarea, select),
+.cal-workspace :is(button, input, textarea, select) {
+  font-family: var(--cal-font);
+  accent-color: var(--cal-ink);
+}
+.cal-home :is(a, button, input, textarea, select, summary):focus-visible,
+.cal-workspace :is(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--cal-ink);
+  outline-offset: 3px;
+}
+.cal-home :is(button, .button),
+.cal-workspace :is(button, .welcome-example-btn) {
+  transition: background-color 140ms ease, color 140ms ease,
+    border-color 140ms ease, box-shadow 140ms ease;
+}
+.cal-home :is(input, textarea)::placeholder,
+.cal-workspace :is(input, textarea)::placeholder { color: var(--cal-slate); opacity: 1; }
+.cal-home :is(button, input, textarea, select):disabled,
+.cal-workspace :is(button, input, textarea, select):disabled { cursor: not-allowed; }
+
+/* Higher specificity is intentional: legacy ID rules otherwise hide focus. */
+.cal-workspace :is(#menu, #sidebar-layers-pane) :is(button, input, select, summary):focus-visible,
+.cal-workspace #chat-input:focus-visible,
+.cal-workspace #api-settings-panel input:focus-visible {
+  outline: 2px solid var(--cal-ink);
+  outline-offset: 3px;
+}
+
+/* 02. Landing: legacy-token bridge, not a rewrite of home*.css ---------- */
+body.cal-home {
+  --ink: var(--cal-ink);
+  --muted: var(--cal-body);
+  --line: var(--cal-line);
+  --paper: var(--cal-paper);
+  --mint: var(--cal-paper);
+  --aqua: var(--cal-hover);
+  --dark: var(--cal-ink);
+  --pixso-line: var(--cal-line);
+  --pixso-panel: var(--cal-white);
+  --pixso-red: var(--cal-ink);
+}
+.cal-home :is(.nav, .section, .content, footer) {
+  max-width: var(--cal-content);
+  padding-left: var(--cal-gutter);
+  padding-right: var(--cal-gutter);
+}
+.cal-home main { overflow: visible; }
+.cal-home :is(section[id], #plan) { scroll-margin-top: 92px; }
+.cal-home .nav {
+  position: sticky;
+  top: 0;
+  height: 68px;
+  margin: 0 auto;
+  gap: 24px;
+  border-bottom: 1px solid var(--cal-line);
+  background: var(--cal-paper);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.cal-home .brand {
+  color: var(--cal-ink);
+  font-family: var(--cal-font);
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -.045em;
+}
+.cal-home .brand span { color: inherit; }
+.cal-home .nav nav {
+  position: static;
+  transform: none;
+  align-items: center;
+  gap: 24px;
+}
+.cal-home .nav nav a {
+  color: var(--cal-body);
+  font-family: var(--cal-font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.cal-home .nav nav a:hover { color: var(--cal-ink); }
+.cal-home .nav-actions { gap: 10px; }
+.cal-home .language-toggle {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid var(--cal-line);
+  border-radius: var(--cal-radius-sm);
+  background: var(--cal-white);
+  color: var(--cal-graphite);
+  font: 500 12px/1.4 var(--cal-font);
+  letter-spacing: 0;
+}
+.cal-home .language-toggle:hover { border-color: var(--cal-line-strong); background: var(--cal-hover); }
+.cal-home .button,
+.cal-home .nav .button.small,
+.cal-home .ask button {
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid var(--cal-ink);
+  border-radius: var(--cal-radius-sm);
+  background: var(--cal-ink);
+  color: var(--cal-white);
+  font: 500 13px/1.4 var(--cal-font);
+  box-shadow: 0 1px 2px rgb(16 16 16 / 5%);
+  transform: none;
+}
+.cal-home .nav .button.small { display: inline-flex; min-height: 36px; padding: 8px 12px; gap: 12px; }
+.cal-home .button:hover,
+.cal-home .nav .button.small:hover,
+.cal-home .ask button:hover {
+  background: var(--cal-graphite);
+  border-color: var(--cal-graphite);
+  color: var(--cal-white);
+  transform: none;
+}
+.cal-home :is(h1, h2, h3) {
+  color: var(--cal-ink);
+  font-family: var(--cal-font);
+  font-weight: 600;
+  text-wrap: balance;
+}
+.cal-home :is(h1, h2) em { color: inherit; font-family: inherit; font-style: normal; font-weight: inherit; }
+.cal-home :is(.section h2, .section-head h2, .intelligence h2, .final h2, .analyze-detail h2) {
+  margin: 12px 0 20px;
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1.17;
+  letter-spacing: -.04em;
+}
+.cal-home .eyebrow {
+  margin: 0 0 12px;
+  color: var(--cal-slate);
+  font: 500 10px/1.5 var(--cal-font);
+  letter-spacing: .075em;
+}
+.cal-home .eyebrow i { width: 6px; height: 6px; background: var(--cal-ink); box-shadow: none; }
+.cal-home .text-link { color: var(--cal-ink); border-color: var(--cal-line-strong); font-size: 13px; font-weight: 500; }
+.cal-home .text-link:hover { border-color: var(--cal-ink); }
+
+/* 03. Homepage hero: existing form and handlers, one shared frame ------- */
+.cal-home .cal-hero-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  align-items: center;
+  gap: 44px;
+  width: calc(100% - 48px);
+  max-width: var(--cal-content);
+  margin: 20px auto 16px;
+  padding: 52px 48px;
+  border: 1px solid var(--cal-line);
+  border-radius: var(--cal-radius);
+  background: var(--cal-white);
+  box-shadow: var(--cal-shadow);
+}
+.cal-home .cal-hero-copy { min-width: 0; }
+.cal-home .hero.hero-text {
+  display: block;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cal-home .hero.hero-text > div { max-width: none; }
+.cal-home .hero.hero-text .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 20px;
+  padding: 4px 9px;
+  border: 1px solid var(--cal-line);
+  border-radius: var(--cal-radius-sm);
+  background: var(--cal-paper);
+  color: var(--cal-body);
+  font-size: 9px;
+  letter-spacing: .06em;
+}
+.cal-home .hero h1 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(40px, 4.15vw, 58px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -.055em;
+}
+html:lang(zh) .cal-home .hero h1 { line-height: 1.22; letter-spacing: -.04em; }
+.cal-home .ask-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  margin: 22px 0 0;
+  padding: 0;
+}
+.cal-home .ask-context { order: -1; max-width: none; margin: 0 0 22px; text-align: left; color: var(--cal-body); }
+.cal-home .ask-context p { max-width: none; margin: 0; color: var(--cal-body); font: 400 14px/1.7 var(--cal-font); text-wrap: pretty; }
+.cal-home .ask-context p:last-child { margin-top: 12px; color: var(--cal-slate); font: 400 11px/1.6 var(--cal-font); letter-spacing: 0; }
+.cal-home .ask-context b { padding: 0 3px; color: var(--cal-slate); font-weight: 400; }
+.cal-home .ask {
+  min-width: 0;
+  min-height: 0;
+  padding: 6px;
+  gap: 6px;
+  border: 1px solid var(--cal-line-strong);
+  border-radius: var(--cal-radius-md);
+  background: var(--cal-white);
+  box-shadow: 0 1px 2px rgb(16 16 16 / 3%);
+}
+.cal-home .ask:focus-within { border-color: var(--cal-ink); box-shadow: 0 0 0 3px rgb(16 16 16 / 7%); }
+.cal-home .ask > span { padding-left: 8px; color: var(--cal-slate); font-size: 19px; line-height: 1; }
+.cal-home .ask input { min-width: 0; padding: 10px 6px; background: transparent; color: var(--cal-ink); font: 400 13px/1.5 var(--cal-font); }
+.cal-home .cal-hero-copy .ask { display: grid; grid-template-columns: 24px minmax(0, 1fr); }
+.cal-home .cal-hero-copy .ask button { grid-column: 1 / -1; width: 100%; min-height: 40px; }
+.cal-home .chips { justify-content: flex-start; gap: 6px; margin-top: 12px; }
+.cal-home .chips button {
+  max-width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--cal-line);
+  border-radius: var(--cal-radius-sm);
+  background: var(--cal-white);
+  color: var(--cal-body);
+  font: 400 11px/1.4 var(--cal-font);
+  text-align: left;
+}
+.cal-home .chips button:hover { border-color: var(--cal-line-strong); background: var(--cal-paper); color: var(--cal-ink); }
+.cal-home .cal-hero-product { min-width: 0; margin: 0; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); box-shadow: var(--cal-shadow); overflow: hidden; }
+.cal-home .cal-product-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--cal-line); }
+.cal-home .cal-product-header strong { color: var(--cal-ink); font-size: 15px; font-weight: 600; letter-spacing: -.03em; }
+.cal-home .cal-product-header span { color: var(--cal-slate); font-size: 10px; }
+.cal-home .cal-product-media { display: grid; place-items: center; min-height: 240px; padding: 12px; background: var(--cal-white); }
+.cal-home .cal-product-media img { display: block; width: 100%; height: 268px; object-fit: contain; }
+.cal-home .cal-product-media iframe { display: block; width: 100%; height: 268px; border: 0; background: var(--cal-paper); }
+.cal-home .cal-product-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 8px; margin: 0 16px; padding: 12px 0; border-top: 1px solid var(--cal-line); }
+.cal-home .cal-product-flow > div { padding: 8px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-paper); text-align: center; }
+.cal-home .cal-product-flow b { display: block; color: var(--cal-graphite); font-size: 11px; font-weight: 500; }
+.cal-home .cal-product-flow small { display: block; margin-top: 3px; color: var(--cal-slate); font-size: 9px; }
+.cal-home .cal-product-flow > span { color: var(--cal-slate); font-size: 12px; }
+.cal-home .cal-hero-product > figcaption { padding: 0 18px 16px; color: var(--cal-slate); font-size: 10px; line-height: 1.5; }
+.cal-home .cal-copy-zh { display: none; }
+html:lang(zh) .cal-home .cal-copy-en { display: none; }
+html:lang(zh) .cal-home .cal-copy-zh { display: inline; }
+
+/* 04. Landing sections and evidence surfaces --------------------------- */
+.cal-home .content { padding-top: 72px; padding-bottom: 72px; }
+.cal-home .section-head { align-items: flex-end; gap: 48px; margin-bottom: 28px; }
+.cal-home .section-head h2 { margin-bottom: 0; }
+.cal-home :is(.section-head > p, .explore-copy > p:not(.eyebrow), .intelligence p:not(.eyebrow), .official-knowledge > div > p:not(.eyebrow), #evidence .intelligence-grid > div > p:not(.eyebrow)) { color: var(--cal-body); font-size: 14px; line-height: 1.75; }
+.cal-home .features { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; border: 0; }
+.cal-home .feature {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 272px;
+  padding: 20px 18px;
+  border: 1px solid var(--cal-line);
+  border-radius: var(--cal-radius);
+  background: var(--cal-white);
+  color: var(--cal-ink);
+  box-shadow: var(--cal-shadow);
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+.cal-home .feature:hover { transform: none; background: var(--cal-white); border-color: var(--cal-line-strong); box-shadow: var(--cal-shadow-float); }
+.cal-home .feature > span { color: var(--cal-slate); font: 500 10px/1.4 var(--cal-font); letter-spacing: .04em; }
+.cal-home .feature .icon { display: grid; place-items: center; width: 34px; height: 34px; margin: 20px 0 14px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-paper); color: var(--cal-graphite); font-size: 21px; }
+.cal-home .feature h3 { margin: 0 0 9px; font-size: 16px; line-height: 1.35; letter-spacing: -.02em; }
+.cal-home .feature p { margin: 0 0 18px; color: var(--cal-body); font-size: 12px; line-height: 1.7; }
+.cal-home .feature small { position: static; margin-top: auto; color: var(--cal-slate); font: 400 9px/1.6 var(--cal-font); letter-spacing: .025em; }
+.cal-home .feature b { position: static; display: block; margin-top: 16px; color: var(--cal-graphite); font: 500 10px/1.4 var(--cal-font); }
+.cal-home .explore-zone { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 56px; min-height: 0; padding-top: 20px; padding-bottom: 72px; }
+.cal-home .explore-zone h2 em { white-space: normal; }
+.cal-home :is(.explore-copy dl, .official-knowledge dl) { display: grid; grid-template-columns: minmax(96px, .45fr) minmax(0, 1fr); margin: 24px 0; border-top: 1px solid var(--cal-line); }
+.cal-home :is(.explore-copy dt, .explore-copy dd, .official-knowledge dt, .official-knowledge dd) { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--cal-line); font: 400 12px/1.65 var(--cal-font); letter-spacing: 0; }
+.cal-home :is(.explore-copy dt, .official-knowledge dt) { padding-right: 12px; color: var(--cal-slate); }
+.cal-home :is(.explore-copy dd, .official-knowledge dd) { color: var(--cal-graphite); }
+.cal-home .explore-art { width: 100%; margin: 0; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); box-shadow: var(--cal-shadow); }
+.cal-home .explore-art img { display: block; width: 100%; max-height: 460px; object-fit: contain; }
+.cal-home .explore-art figcaption { position: static; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--cal-line); background: var(--cal-white); color: var(--cal-body); font: 400 10px/1.5 var(--cal-font); letter-spacing: .025em; }
+.cal-home .explore-art figcaption span { color: var(--cal-slate); }
+.cal-home .analyze-detail { width: calc(100% - 48px); max-width: var(--cal-content); margin: 0 auto; padding: 0; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); box-shadow: var(--cal-shadow); }
+.cal-home .analyze-detail > .section { padding: 40px; }
+.cal-home .analyze-detail .analysis-lead { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 48px; min-height: 0; }
+.cal-home .analyze-detail .analysis-lead > p { max-width: 390px; margin: 0 0 20px auto; color: var(--cal-body); font-size: 14px; line-height: 1.75; }
+.cal-home .analyze-detail .analysis-workflow { margin-top: 24px; border: 0; }
+.cal-home .analyze-detail .steps { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.cal-home .analyze-detail .steps > div,
+.cal-home .analyze-detail .steps > div:first-child { min-width: 0; min-height: 0; padding: 16px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-md); background: var(--cal-paper); }
+.cal-home .analyze-detail .steps span { display: inline-grid; place-items: center; width: 27px; height: 27px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-body); font: 500 11px/1 var(--cal-font); }
+.cal-home .analyze-detail .steps h3 { margin: 16px 0 6px; color: var(--cal-ink); font-size: 14px; line-height: 1.4; }
+.cal-home .analyze-detail .steps p { max-width: none; color: var(--cal-body); font-size: 12px; line-height: 1.6; }
+.cal-home #evidence .intelligence-grid { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; gap: 56px; }
+.cal-home .rf-panel { min-width: 0; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); box-shadow: var(--cal-shadow); overflow: hidden; }
+.cal-home .rf-panel figure { background: var(--cal-white); }
+.cal-home .rf-panel figure figcaption { padding: 14px 18px 0; background: var(--cal-white); color: var(--cal-slate); font: 400 10px/1.5 var(--cal-font); letter-spacing: .04em; }
+.cal-home .rf-panel figure img { max-height: 340px; min-height: 0; object-fit: contain; }
+.cal-home .importance { padding: 18px; border-top: 1px solid var(--cal-line); background: var(--cal-white); color: var(--cal-graphite); }
+.cal-home .importance > b { font: 500 12px/1.6 var(--cal-font); }
+.cal-home .importance small { color: var(--cal-slate); font-size: 10px; font-weight: 400; }
+.cal-home .importance span { grid-template-columns: minmax(104px, .9fr) minmax(0, 1fr) 55px; gap: 10px; margin: 9px 0; font: 400 11px/1.5 var(--cal-font); }
+.cal-home .importance i { display: block; height: 5px; overflow: hidden; border-radius: 3px; background: var(--cal-paper); }
+/* Keep every supplied --w value; replace only the decorative gradient. */
+.cal-home .importance i::before { content: ""; display: block; width: var(--w); height: 100%; border-radius: inherit; background: var(--cal-graphite); }
+.cal-home .importance em { color: var(--cal-body); font-variant-numeric: tabular-nums; }
+.cal-home .scenario-composition { width: calc(100% - 48px); max-width: var(--cal-content); margin: 0 auto; padding: 40px; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 40px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); box-shadow: var(--cal-shadow); }
+.cal-home .scenario-composition :is(.live-scenario, #plan) { margin: 0; padding: 0; border: 0; background: transparent; }
+.cal-home .scenario-composition .live-scenario > .section,
+.cal-home .scenario-composition #plan > .content { max-width: none; margin: 0; padding: 0; }
+.cal-home .scenario-composition .intelligence-grid { gap: 24px; }
+.cal-home .scenario-composition .intelligence-grid > div:first-child { max-width: none; }
+.cal-home .scenario-composition .intelligence-grid h2 { margin: 12px 0 18px; font-size: 36px; line-height: 1.2; }
+.cal-home .scenario-composition .intelligence-grid > div:first-child > p:not(.eyebrow) { color: var(--cal-body); font-size: 13px; }
+.cal-home .scenario-model-title { margin-bottom: 20px; }
+.cal-home .scenario-model-title h3 { color: var(--cal-ink); font: 500 18px/1.4 var(--cal-font); letter-spacing: -.02em; }
+.cal-home .scenario-composition .viewer-wrap { height: 382px; max-width: none; margin: 0; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-md); background: var(--cal-paper); box-shadow: none; }
+.cal-home .viewer-wrap iframe { background: var(--cal-paper); transform: none; }
+.cal-home .scenario-composition .viewer-note { right: 10px; bottom: 10px; padding: 6px 8px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-body); font: 400 9px/1.5 var(--cal-font); }
+.cal-home .viewer-note span:first-child { color: var(--cal-graphite); }
+.cal-home .scenario-composition .pipeline { max-width: none; margin-top: auto; border-color: var(--cal-line); }
+.cal-home .scenario-composition .pipeline > div { padding: 12px 14px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-graphite); font: 400 12px/1.5 var(--cal-font); }
+.cal-home .scenario-composition .pipeline .planner { background: var(--cal-paper); }
+.cal-home .scenario-composition .pipeline .result { border-color: var(--cal-line-strong); background: var(--cal-hover); font-weight: 500; }
+.cal-home .scenario-composition .pipeline > i { padding: 5px 14px; color: var(--cal-slate); }
+.cal-home .pipeline small { color: var(--cal-slate); font: 400 11px/1.6 var(--cal-font); }
+.cal-home .official-knowledge { gap: 56px; padding-top: 72px; padding-bottom: 72px; background: transparent; }
+.cal-home .official-knowledge article { padding: 28px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); color: var(--cal-ink); box-shadow: var(--cal-shadow); }
+.cal-home .official-knowledge article > span { display: inline-block; padding: 4px 8px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); color: var(--cal-body); font: 500 10px/1.5 var(--cal-font); letter-spacing: .025em; }
+.cal-home .official-knowledge article h3 { margin: 18px 0 6px; font-size: 23px; line-height: 1.4; letter-spacing: -.025em; }
+.cal-home .official-knowledge article > p { color: var(--cal-slate); font-size: 12px; }
+.cal-home .official-knowledge dl { margin-bottom: 0; }
+.cal-home .final { width: calc(100% - 48px); max-width: var(--cal-content); margin: 0 auto; padding: 44px 24px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white); }
+.cal-home .final .section { padding-top: 0; padding-bottom: 0; }
+.cal-home .final .eyebrow { color: var(--cal-slate); }
+.cal-home .final h2 { color: var(--cal-ink); }
+.cal-home .final .ask { max-width: 720px; border-color: var(--cal-line-strong); background: var(--cal-white); }
+.cal-home .final .ask button { flex-shrink: 0; background: var(--cal-ink); color: var(--cal-white); }
+.cal-home .final .ask button:hover { background: var(--cal-graphite); }
+.cal-home footer { display: flex; flex-wrap: wrap; gap: 16px; min-height: 92px; margin: 32px auto 0; padding-top: 24px; padding-bottom: 24px; border-top: 1px solid var(--cal-line); background: transparent; color: var(--cal-slate); font: 400 12px/1.5 var(--cal-font); }
+.cal-home footer a { color: var(--cal-graphite); font-family: var(--cal-font); }
+
+/* 05. Workspace: bridge only UI tokens; retain GIS palettes ------------- */
+body.cal-workspace {
+  --glen-ink: var(--cal-ink);
+  --glen-ink-soft: var(--cal-body);
+  --glen-muted: var(--cal-slate);
+  --glen-line: var(--cal-line);
+  --glen-line-strong: var(--cal-line-strong);
+  --glen-surface: var(--cal-white);
+  --glen-surface-strong: var(--cal-white);
+  --glen-surface-soft: var(--cal-paper);
+  --glen-accent: var(--cal-ink);
+  --glen-accent-deep: var(--cal-graphite);
+  --glen-accent-soft: var(--cal-hover);
+  --glen-data: var(--cal-body);
+  --glen-data-soft: var(--cal-paper);
+  --glen-success: var(--cal-success);
+  --glen-danger: var(--cal-danger);
+  --glen-radius-sm: var(--cal-radius-sm);
+  --glen-radius-md: var(--cal-radius-md);
+  --glen-radius-lg: var(--cal-radius);
+  --glen-shadow-panel: var(--cal-shadow-float);
+  --glen-shadow-float: var(--cal-shadow-float);
+  --glen-font: var(--cal-font);
+}
+.cal-workspace #chat-container,
+.cal-workspace.sidebar-mode #sidebar {
+  box-sizing: border-box;
+  border: 1px solid var(--cal-line);
+  background: var(--cal-white);
+  color: var(--cal-ink);
+  box-shadow: var(--cal-shadow-float);
+  font-family: var(--cal-font);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.cal-workspace #chat-container { border-radius: 0 var(--cal-radius) var(--cal-radius) 0; }
+.cal-workspace #chat-container::after { display: none; }
+.cal-workspace #chat-header,
+.cal-workspace.sidebar-mode #sidebar-header { box-sizing: border-box; gap: 8px; min-height: 50px; padding: 12px 16px; border-color: var(--cal-line); background: var(--cal-white); box-shadow: none; }
+.cal-workspace #chat-header h3,
+.cal-workspace.sidebar-mode #sidebar-header h3 { color: var(--cal-ink); font-size: 16px; font-weight: 600; letter-spacing: -.025em; }
+.cal-workspace #chat-header .brand-title { font-size: 18px; font-weight: 600; letter-spacing: -.012em; line-height: 1.3; }
+.cal-workspace #chat-header .brand-title::before { display: none; }
+.cal-workspace #chat-header h3::before { width: 6px; height: 6px; background: var(--cal-ink); box-shadow: none; }
+.cal-workspace .chat-header-right { gap: 6px; }
+.cal-workspace .lang-switcher { gap: 2px; padding: 3px; border-color: var(--cal-line); border-radius: var(--cal-radius-md); background: var(--cal-paper); }
+.cal-workspace .lang-btn { min-height: 28px; padding: 5px 7px; border-radius: var(--cal-radius-sm); color: var(--cal-body); font-size: 11px; font-weight: 500; }
+.cal-workspace .lang-btn:hover { background: var(--cal-hover); color: var(--cal-ink); }
+.cal-workspace .lang-btn.active { background: var(--cal-white); color: var(--cal-ink); box-shadow: 0 1px 2px rgb(16 16 16 / 8%); }
+.cal-workspace #chat-toggle,
+.cal-workspace #sidebar-hide,
+.cal-workspace #chat-section-toggle { min-width: 30px; min-height: 30px; padding: 4px; border: 1px solid transparent; border-radius: var(--cal-radius-sm); color: var(--cal-body); }
+.cal-workspace :is(#chat-toggle, #sidebar-hide, #chat-section-toggle):hover { border-color: var(--cal-line); background: var(--cal-paper); color: var(--cal-ink); }
+.cal-workspace #chat-messages { min-height: 0; padding: 16px; gap: 12px; background: var(--cal-paper); scrollbar-color: var(--cal-line-strong) transparent; scrollbar-width: thin; }
+.cal-workspace #chat-messages::-webkit-scrollbar-thumb { background: var(--cal-line-strong); border: 2px solid var(--cal-paper); }
+.cal-workspace .chat-message { min-width: 0; box-sizing: border-box; padding: 12px 14px; border-radius: var(--cal-radius-md); color: var(--cal-graphite); font: 400 13px/1.65 var(--cal-font); overflow-wrap: anywhere; }
+.cal-workspace .chat-message.assistant { border: 1px solid var(--cal-line); background: var(--cal-white); color: var(--cal-graphite); box-shadow: none; }
+.cal-workspace .chat-message.user { border: 1px solid var(--cal-line-strong); background: #eaeaec; color: var(--cal-ink); box-shadow: none; }
+.cal-workspace .chat-message.system { border: 1px solid var(--cal-line); background: var(--cal-white); color: var(--cal-body); font-size: 12px; font-style: normal; }
+.cal-workspace .chat-message.assistant-thinking { border: 1px solid var(--cal-line); border-left: 2px solid var(--cal-line-strong); background: var(--cal-white); color: var(--cal-body); font-style: normal; }
+.cal-workspace .chat-message.error { border: 1px solid var(--cal-danger-line); background: var(--cal-danger-bg); color: var(--cal-danger); }
+.cal-workspace .chat-message :is(h1, h2, h3, h4) { color: var(--cal-ink); font-family: var(--cal-font); font-weight: 600; line-height: 1.4; }
+.cal-workspace .chat-message a { color: var(--cal-graphite); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.cal-workspace .chat-message p { margin-top: 0; }
+.cal-workspace .chat-message p:last-child { margin-bottom: 0; }
+.cal-workspace .welcome-message { max-width: none; padding: 18px; }
+.cal-workspace .welcome-message p { color: var(--cal-body); }
+.cal-workspace .welcome-message p.welcome-title { margin-bottom: 8px; color: var(--cal-ink); font-size: 19px; font-weight: 600; letter-spacing: -.025em; line-height: 1.4; }
+.cal-workspace .welcome-message p.welcome-body { font-size: 13px; line-height: 1.65; }
+.cal-workspace .welcome-examples { gap: 8px; }
+.cal-workspace .welcome-example-btn { max-width: 100%; padding: 8px 10px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-body); font-size: 12px; line-height: 1.45; text-align: left; }
+.cal-workspace .welcome-example-btn:hover { transform: none; border-color: var(--cal-line-strong); background: var(--cal-paper); color: var(--cal-ink); }
+.cal-workspace #chat-input-container,
+.cal-workspace.sidebar-mode #chat-input-container { min-width: 0; gap: 8px; padding: 12px; border-color: var(--cal-line); background: var(--cal-white); }
+.cal-workspace #chat-input { min-width: 0; box-sizing: border-box; min-height: 42px; padding: 10px 12px; border: 1px solid var(--cal-line-strong); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-ink); font-size: 13px; line-height: 1.5; box-shadow: none; }
+.cal-workspace #chat-input:focus { border-color: var(--cal-ink); background: var(--cal-white); box-shadow: 0 0 0 3px rgb(16 16 16 / 7%); }
+.cal-workspace #chat-send { min-width: 58px; min-height: 42px; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--cal-ink); border-radius: var(--cal-radius-sm); background: var(--cal-ink); color: var(--cal-white); font-size: 13px; font-weight: 500; box-shadow: none; }
+.cal-workspace #chat-send:hover { background: var(--cal-graphite); border-color: var(--cal-graphite); transform: none; box-shadow: none; }
+.cal-workspace :is(#chat-mic, #chat-abandon) { min-width: 38px; min-height: 42px; box-sizing: border-box; padding: 9px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-body); }
+.cal-workspace #chat-mic:hover { border-color: var(--cal-line-strong); background: var(--cal-paper); color: var(--cal-ink); }
+/* Functional states retain visible, restrained semantic distinction. */
+.cal-workspace #chat-send.stop { border-color: var(--cal-danger-line); background: var(--cal-danger-bg); color: var(--cal-danger); }
+.cal-workspace #chat-send.stop:hover { border-color: var(--cal-danger); background: #f6e5e5; }
+.cal-workspace #chat-send.continue { border-color: var(--cal-success-line); background: var(--cal-success-bg); color: var(--cal-success); }
+.cal-workspace #chat-send.continue:hover { border-color: var(--cal-success); background: #e5f0e9; }
+.cal-workspace #chat-mic.recording,
+.cal-workspace #chat-abandon:hover { border-color: var(--cal-danger-line); background: var(--cal-danger-bg); color: var(--cal-danger); }
+.cal-workspace #chat-send:disabled { border-color: var(--cal-line); background: var(--cal-paper); color: var(--cal-slate); transform: none; box-shadow: none; cursor: not-allowed; }
+.cal-workspace #chat-footer,
+.cal-workspace.sidebar-mode #sidebar-footer { flex-wrap: wrap; gap: 8px; padding: 6px 12px 10px; border-color: var(--cal-line); background: var(--cal-white); color: var(--cal-slate); font: 400 11px/1.4 var(--cal-font); }
+.cal-workspace #chat-footer-right { flex-wrap: wrap; min-width: 0; gap: 4px; }
+.cal-workspace :is(.footer-link, .header-link) { color: var(--cal-body); border-radius: var(--cal-radius-sm); }
+.cal-workspace .header-link:hover { color: var(--cal-ink); }
+.cal-workspace :is(#model-selector, .version-select, .anim-speed) { min-width: 0; max-width: 100%; padding: 6px 8px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-body); font-size: 11px; opacity: 1; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace #model-selector { max-width: min(180px, 45vw); }
+.cal-workspace #model-selector:hover { border-color: var(--cal-line-strong); background: var(--cal-paper); opacity: 1; }
+.cal-workspace :is(#export-btn, #auto-approve-btn, #settings-btn) { min-width: 28px; min-height: 28px; border-radius: var(--cal-radius-sm); color: var(--cal-body); opacity: 1; }
+.cal-workspace :is(#export-btn, #auto-approve-btn, #settings-btn):hover:not(:disabled) { background: var(--cal-paper); color: var(--cal-ink); }
+.cal-workspace #export-btn:disabled { opacity: .45; }
+.cal-workspace #auto-approve-btn.active { color: var(--cal-warning); background: var(--cal-warning-bg); }
+
+.cal-workspace #chat-mic.recording { animation: none; box-shadow: 0 0 0 3px rgb(159 51 51 / 10%); }
+
+/* 06. Agent traces, approvals, settings, light code blocks -------------- */
+.cal-workspace .agent-turn { min-width: 0; border: 1px solid var(--cal-line); border-left: 2px solid var(--cal-line-strong); border-radius: var(--cal-radius-md); background: var(--cal-white); }
+.cal-workspace .agent-turn.done { border-left-color: var(--cal-success); }
+.cal-workspace .agent-turn.error { border-left-color: var(--cal-danger); }
+.cal-workspace .agent-turn.cancelled { border-left-color: var(--cal-slate); }
+.cal-workspace .agent-turn > .agent-turn-summary { padding: 10px 12px; color: var(--cal-body); font-size: 12px; }
+.cal-workspace .agent-turn-body { padding: 0 10px 10px; }
+.cal-workspace .agent-turn-row-summary { min-height: 28px; padding: 5px 6px; border-radius: var(--cal-radius-sm); color: var(--cal-graphite); }
+.cal-workspace .agent-turn-row-summary:hover { background: var(--cal-paper); }
+.cal-workspace .agent-turn-row-body { min-width: 0; color: var(--cal-body); overflow-wrap: anywhere; }
+.cal-workspace .agent-turn-icon.done,
+.cal-workspace .agent-turn-row .row-status.done { color: var(--cal-success); }
+.cal-workspace .agent-turn-icon.error,
+.cal-workspace .agent-turn-row .row-status.error { color: var(--cal-danger); }
+.cal-workspace .agent-turn-icon.cancelled { color: var(--cal-slate); }
+.cal-workspace .tool-reasoning { color: var(--cal-body); font-size: 12px; }
+.cal-workspace .chat-message.tool-block { border: 1px solid var(--cal-line); border-left: 2px solid var(--cal-line-strong); background: var(--cal-white); }
+.cal-workspace .query-summary-btn { border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-paper); color: var(--cal-graphite); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace .query-summary-btn::before { border-left-color: currentColor; }
+.cal-workspace .query-summary-btn:hover { border-color: var(--cal-line-strong); background: var(--cal-hover); }
+.cal-workspace :is(.tool-call-item, .tool-result-item) { border-color: var(--cal-line); }
+.cal-workspace :is(.tool-call-item strong, .tool-result-item strong, .sql-detail summary) { color: var(--cal-graphite); }
+.cal-workspace .tool-tag.remote { background: var(--cal-paper); color: var(--cal-body); border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); }
+.cal-workspace .tool-output { overflow: auto; max-width: 100%; }
+.cal-workspace .tool-approval-buttons { flex-wrap: wrap; border-color: var(--cal-line); }
+.cal-workspace :is(.approve-btn, .settings-save-btn) { min-height: 36px; padding: 8px 12px; border: 1px solid var(--cal-ink); border-radius: var(--cal-radius-sm); background: var(--cal-ink); color: var(--cal-white); font-size: 12px; font-weight: 500; }
+.cal-workspace :is(.approve-btn, .settings-save-btn):hover:not(:disabled) { background: var(--cal-graphite); border-color: var(--cal-graphite); opacity: 1; }
+.cal-workspace .approve-btn:disabled { background: var(--cal-paper); border-color: var(--cal-line); color: var(--cal-slate); opacity: 1; }
+.cal-workspace #api-settings-panel { border-color: var(--cal-line); background: var(--cal-paper); color: var(--cal-ink); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace .settings-title { color: var(--cal-ink); }
+.cal-workspace :is(.settings-label, .settings-hint) { color: var(--cal-body); }
+.cal-workspace .settings-hint { font-size: 11px; }
+.cal-workspace #api-settings-panel input { min-height: 36px; border: 1px solid var(--cal-line-strong); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-ink); font-size: 12px; }
+.cal-workspace #api-settings-panel input:focus { border-color: var(--cal-ink); box-shadow: 0 0 0 3px rgb(16 16 16 / 7%); }
+.cal-workspace .settings-cancel-btn { min-height: 36px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-graphite); }
+.cal-workspace .settings-cancel-btn:hover { background: var(--cal-hover); }
+.cal-workspace .chat-message pre,
+.cal-workspace .agent-turn pre { max-width: 100%; box-sizing: border-box; padding: 12px; overflow: auto; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-paper); color: var(--cal-graphite); font: 400 11px/1.65 var(--cal-mono); }
+.cal-workspace .chat-message code,
+.cal-workspace .agent-turn code { border-radius: 4px; background: var(--cal-paper); color: var(--cal-graphite); font-family: var(--cal-mono); }
+.cal-workspace :is(.chat-message, .agent-turn) pre code { padding: 0; background: transparent; }
+/* The original vendor file is github-dark; contain its palette to code. */
+.cal-workspace :is(.chat-message, .agent-turn) .hljs { background: var(--cal-paper); color: var(--cal-graphite); }
+.cal-workspace :is(.chat-message, .agent-turn) .hljs [class^="hljs-"] { color: var(--cal-body); }
+.cal-workspace :is(.chat-message, .agent-turn) .hljs :is(.hljs-keyword, .hljs-title, .hljs-number, .hljs-operator) { color: var(--cal-ink); }
+.cal-workspace :is(.chat-message, .agent-turn) .hljs .hljs-comment { color: var(--cal-slate); }
+.cal-workspace .chat-message table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 12px; }
+.cal-workspace .chat-message :is(th, td) { padding: 8px 10px; border-color: var(--cal-line); }
+.cal-workspace .chat-message th { background: var(--cal-paper); color: var(--cal-graphite); font-weight: 500; }
+
+/* 07. Layers, selectors, legends and map-control surfaces --------------- */
+/* These legacy surfaces have !important glass backgrounds. */
+.cal-workspace #menu,
+.cal-workspace #legend { border: 1px solid var(--cal-line); border-radius: var(--cal-radius); background: var(--cal-white) !important; color: var(--cal-ink); box-shadow: var(--cal-shadow-float); font-family: var(--cal-font); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace #menu { padding: 14px; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) :is(.section-title, .layer-group-title) { color: var(--cal-body); font-size: 11px; font-weight: 500; letter-spacing: .035em; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-group-title { padding: 6px 4px; border-radius: var(--cal-radius-sm); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-group-title:hover { background: var(--cal-paper); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-group-title::before { color: var(--cal-slate); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .basemap-toggle-group { gap: 3px; padding: 3px; border: 1px solid var(--cal-line); border-radius: var(--cal-radius-md); background: var(--cal-paper); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .basemap-btn { min-height: 30px; padding: 6px 8px; border: 1px solid transparent; border-radius: var(--cal-radius-sm); background: transparent; color: var(--cal-body); font-size: 11px; font-weight: 500; box-shadow: none; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .basemap-btn:hover { background: var(--cal-white); color: var(--cal-ink); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .basemap-btn.active { border-color: var(--cal-ink); background: var(--cal-ink); color: var(--cal-white); box-shadow: none; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-item { margin: 0; padding: 0; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle { min-height: 34px; padding: 3px 6px; border-radius: var(--cal-radius-sm); color: var(--cal-graphite); font-size: 12px; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle:hover { background: var(--cal-paper); color: var(--cal-ink); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) :is(.radio-group label, .checkbox-group label) { color: var(--cal-graphite); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"] { appearance: none; display: inline-grid; place-content: center; flex-shrink: 0; box-sizing: border-box; width: 16px; height: 16px; margin: 0 8px 0 0; border: 1px solid #9ca3af; border-radius: 4px; background: var(--cal-white); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"]::before { content: ""; width: 8px; height: 4px; margin-top: -2px; border: 0; border-left: 1.5px solid var(--cal-white); border-bottom: 1.5px solid var(--cal-white); border-radius: 0; background: transparent; transform: rotate(-45deg) scale(0); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"]:checked { border-color: var(--cal-ink); background: var(--cal-ink); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"]:checked::before { transform: rotate(-45deg) scale(1); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"]:indeterminate { border-color: var(--cal-ink); background: var(--cal-ink); }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"]:indeterminate::before { height: 0; margin: 0; border-left: 0; transform: none; }
+.cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input:disabled { opacity: .5; }
+.cal-workspace :is(#menu-toggle, .menu-header-btn, .globe-btn, #legend-toggle) { min-width: 28px; min-height: 28px; padding: 4px; border-radius: var(--cal-radius-sm); color: var(--cal-body); }
+.cal-workspace :is(#menu-toggle, .menu-header-btn, .globe-btn, #legend-toggle):hover:not(:disabled) { color: var(--cal-ink); background: var(--cal-paper); }
+.cal-workspace .globe-btn.active { background: var(--cal-hover); color: var(--cal-ink); }
+.cal-workspace #legend-header { padding: 10px 12px; border-color: var(--cal-line); background: var(--cal-white); }
+.cal-workspace #legend-header h3 { color: var(--cal-ink); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.cal-workspace #legend-content { padding: 12px; }
+.cal-workspace #legend .legend-section h4 { color: var(--cal-body); font-size: 10px; font-weight: 500; letter-spacing: .035em; }
+.cal-workspace #legend :is(.legend-labels, .legend-item) { color: var(--cal-body); font-variant-numeric: tabular-nums; }
+/* Do NOT set background, filter or opacity on data colorbars/swatches. */
+.cal-workspace #legend .legend-colorbar { border: 1px solid var(--cal-line); border-radius: 4px; box-shadow: none; }
+.cal-workspace #legend.inline { border: 0; border-radius: 0; background: transparent !important; box-shadow: none; }
+.cal-workspace .mobile-layer-select select { min-height: 40px; border: 1px solid var(--cal-line-strong); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-ink); font-family: var(--cal-font); }
+.cal-workspace #species-taxon { border-color: var(--cal-line-strong); border-radius: var(--cal-radius-sm); background: var(--cal-white) !important; color: var(--cal-ink); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace :is(.maplibregl-ctrl-group, .mapboxgl-ctrl-group, .maplibregl-ctrl-geocoder, .mapboxgl-ctrl-geocoder),
+.cal-workspace :is(.maplibregl-ctrl-geocoder, .mapboxgl-ctrl-geocoder) .suggestions { border: 1px solid var(--cal-line); border-radius: var(--cal-radius-md); background: var(--cal-white) !important; color: var(--cal-ink); box-shadow: var(--cal-shadow); font-family: var(--cal-font); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace :is(.maplibregl-ctrl-geocoder, .mapboxgl-ctrl-geocoder) input { color: var(--cal-ink); font-family: var(--cal-font); }
+.cal-workspace :is(.maplibregl-ctrl-geocoder, .mapboxgl-ctrl-geocoder) .suggestions > .active > a,
+.cal-workspace :is(.maplibregl-ctrl-geocoder, .mapboxgl-ctrl-geocoder) .suggestions > li > a:hover { background: var(--cal-paper); color: var(--cal-ink); }
+.cal-workspace :is(.maplibregl-ctrl-group, .mapboxgl-ctrl-group) button + button { border-top-color: var(--cal-line); }
+.cal-workspace :is(.maplibregl-ctrl-group, .mapboxgl-ctrl-group) button:hover { background: var(--cal-paper) !important; }
+.cal-workspace .maplibregl-popup .maplibregl-popup-content,
+.cal-workspace .map-tooltip { border: 1px solid var(--cal-line); border-radius: var(--cal-radius-md); background: var(--cal-white); color: var(--cal-ink); box-shadow: var(--cal-shadow-float); font-family: var(--cal-font); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace .maplibregl-popup .maplibregl-popup-close-button { border-radius: 0 var(--cal-radius-sm) 0 var(--cal-radius-sm); color: var(--cal-body); }
+.cal-workspace .maplibregl-popup .maplibregl-popup-close-button:hover { background: var(--cal-paper); }
+.cal-workspace .maplibregl-popup .map-popup-table :is(th, td) { border-color: var(--cal-line); }
+.cal-workspace .maplibregl-popup .map-popup-table th { color: var(--cal-body); font-weight: 500; }
+.cal-workspace .maplibregl-popup .map-popup-table td { color: var(--cal-ink); }
+.cal-workspace :is(#h3-toggle, #h3-res-badge, .anim-controls) { border-color: var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-body); box-shadow: var(--cal-shadow); font-family: var(--cal-font); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace #h3-toggle:hover { background: var(--cal-paper); color: var(--cal-ink); }
+.cal-workspace :is(#h3-toggle, #draw-toggle).active { border-color: var(--cal-line-strong); background: var(--cal-hover); color: var(--cal-ink); }
+
+/* 08. Sidebar parity: no edits to widths, split ratios or collapse ------ */
+.cal-workspace.sidebar-mode #sidebar { border-radius: var(--cal-radius) 0 0 var(--cal-radius); }
+.cal-workspace.sidebar-mode #sidebar-layers-pane { padding: 10px 14px 14px; background: var(--cal-white); }
+.cal-workspace.sidebar-mode #chat-section-header { padding: 6px 12px; border-color: var(--cal-line); background: var(--cal-white); color: var(--cal-body); }
+.cal-workspace.sidebar-mode #chat-section-header .section-title { font-size: 11px; font-weight: 500; letter-spacing: .025em; }
+.cal-workspace.sidebar-mode .sidebar-splitter { border-color: var(--cal-line); }
+.cal-workspace.sidebar-mode .sidebar-splitter:hover { border-color: var(--cal-line-strong); background: var(--cal-paper); }
+.cal-workspace.sidebar-mode .sidebar-resize-handle:hover { border-color: var(--cal-line-strong); background: rgb(16 16 16 / 4%); }
+.cal-workspace .chat-resize-handle::after { background: var(--cal-line-strong); }
+.cal-workspace .chat-resize-handle:hover::after { background: var(--cal-slate); }
+.cal-workspace :is(#chat-reopen, #sidebar-show-btn) { border-color: var(--cal-line); border-radius: var(--cal-radius-sm); background: var(--cal-white); color: var(--cal-ink); box-shadow: var(--cal-shadow); font-family: var(--cal-font); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cal-workspace #chat-reopen { border-radius: 0 var(--cal-radius) var(--cal-radius) 0; }
+
+/* 09. Responsive: retain workspace geometry from chat.css/sidebar.css --- */
+@media (max-width: 1100px) {
+  .cal-home .cal-hero-frame { gap: 28px; padding: 40px 32px; }
+  .cal-home .hero h1 { font-size: 46px; }
+  .cal-home .nav nav { gap: 18px; }
+  .cal-home .features { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cal-home .feature { min-height: 252px; }
+  .cal-home .analyze-detail .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .cal-home { --cal-gutter: 24px; }
+  .cal-home .cal-hero-frame { grid-template-columns: minmax(0, 1fr); gap: 32px; padding: 36px; }
+  .cal-home .cal-hero-copy { width: 100%; max-width: 620px; margin-inline: auto; }
+  .cal-home .hero h1 { font-size: 52px; }
+  .cal-home .cal-hero-product { width: 100%; max-width: 620px; margin-inline: auto; }
+  .cal-home .cal-product-media img { height: 248px; }
+  .cal-home .cal-product-media { min-height: 0; }
+  .cal-home .explore-zone,
+  .cal-home #evidence .intelligence-grid,
+  .cal-home .official-knowledge { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .cal-home .section-head { display: block; }
+  .cal-home .section-head > p { max-width: 580px; margin-top: 18px; }
+  .cal-home .explore-copy > p:not(.eyebrow) { max-width: 600px; }
+  .cal-home .explore-art { max-width: none; }
+  .cal-home .scenario-composition { grid-template-columns: minmax(0, 1fr); padding: 32px; gap: 32px; }
+  .cal-home .analyze-detail .analysis-lead { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cal-home .analyze-detail .analysis-lead > p { max-width: 580px; margin: 0; }
+  .cal-home .analyze-detail > .section { padding: 32px; }
+}
+@media (max-width: 800px) {
+  .cal-home .nav { gap: 12px; }
+  .cal-home .nav nav { display: none; }
+}
+/* Fix the old 701-760px gap: ui-refactor.css made a desktop chat 100% wide.
+   Keep its desktop sizing until chat.css switches to the bottom drawer. */
+@media (min-width: 701px) and (max-width: 760px) {
+  .cal-workspace #chat-container { width: min(35vw, 720px); min-width: 320px; max-width: 90vw; border-radius: 0 var(--cal-radius) var(--cal-radius) 0; }
+}
+@media (max-width: 760px) {
+  .cal-workspace #menu { padding: 8px; border-radius: var(--cal-radius-md); }
+  .cal-workspace .mobile-layer-select select { font-size: 16px; }
+  .cal-workspace #legend.inline #legend-content { padding: 6px 2px 2px; }
+}
+@media (max-width: 700px) {
+  .cal-workspace #chat-container { border-radius: var(--cal-radius) var(--cal-radius) 0 0; box-shadow: 0 -2px 12px rgb(16 16 16 / 6%); }
+  .cal-workspace #chat-header { flex-wrap: wrap; padding: max(10px, env(safe-area-inset-top, 0px)) 12px 10px; }
+  .cal-workspace #chat-header .brand-title { font-size: 17px; }
+  .cal-workspace .chat-header-right { gap: 4px; }
+  .cal-workspace .lang-btn { min-height: 32px; padding-inline: 6px; }
+  .cal-workspace #chat-toggle { min-width: 36px; min-height: 36px; }
+  .cal-workspace #chat-messages { padding: 12px; }
+  .cal-workspace .chat-message { font-size: 14px; }
+  .cal-workspace .welcome-message { padding: 14px; }
+  .cal-workspace .welcome-example-btn { min-height: 40px; font-size: 12px; }
+  .cal-workspace #chat-input-container,
+  .cal-workspace.sidebar-mode #chat-input-container { gap: 6px; padding: 10px 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+  .cal-workspace #chat-input { min-height: 68px; font-size: 16px; }
+  .cal-workspace :is(#chat-send, #chat-mic, #chat-abandon) { min-height: 44px; }
+  .cal-workspace.sidebar-mode #sidebar { box-shadow: var(--cal-shadow-float); }
+  .cal-workspace #api-settings-panel input { font-size: 16px; }
+}
+@media (max-width: 600px) {
+  .cal-home { --cal-gutter: 20px; }
+  .cal-home .nav { height: 64px; }
+  .cal-home .brand { font-size: 21px; }
+  .cal-home .nav .button.small { display: inline-flex; gap: 8px; padding: 8px 10px; font-size: 12px; }
+  .cal-home .cal-hero-frame { width: calc(100% - 24px); margin-top: 12px; padding: 28px 20px; gap: 28px; border-radius: var(--cal-radius); }
+  .cal-home .hero h1 { font-size: clamp(35px, 9vw, 48px); line-height: 1.12; letter-spacing: -.045em; }
+  .cal-home .hero.hero-text .eyebrow { margin-bottom: 16px; font-size: 8px; }
+  .cal-home .ask-context p { font-size: 13px; }
+  .cal-home .ask input { font-size: 16px; }
+  .cal-home .ask button { min-height: 44px; }
+  .cal-home .chips button { min-height: 36px; font-size: 11px; }
+  .cal-home .cal-product-header { padding: 12px; }
+  .cal-home .cal-product-header span { font-size: 9px; }
+  .cal-home .cal-product-media img { height: 220px; }
+  .cal-home .cal-product-media iframe { height: 220px; }
+  .cal-home .cal-product-flow { gap: 5px; margin-inline: 12px; }
+  .cal-home .cal-product-flow > div { padding: 8px 4px; }
+  .cal-home .cal-product-flow small { font-size: 8px; }
+  .cal-home .cal-hero-product > figcaption { padding-inline: 12px; }
+  .cal-home :is(.section h2, .section-head h2, .intelligence h2, .final h2, .analyze-detail h2) { font-size: 30px; line-height: 1.23; letter-spacing: -.035em; }
+  .cal-home .content { padding-top: 48px; padding-bottom: 48px; }
+  .cal-home .features { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cal-home .feature { padding: 16px; min-height: 240px; }
+  .cal-home .explore-zone { padding-top: 0; padding-bottom: 48px; }
+  .cal-home .analyze-detail { width: calc(100% - 24px); }
+  .cal-home .analyze-detail > .section { padding: 24px 20px; }
+  .cal-home .analyze-detail .steps { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .cal-home .analyze-detail .steps > div,
+  .cal-home .analyze-detail .steps > div:first-child { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 12px; padding: 14px; border: 1px solid var(--cal-line); }
+  .cal-home .analyze-detail .steps span { grid-row: 1 / 3; }
+  .cal-home .analyze-detail .steps h3 { margin: 2px 0 0; }
+  .cal-home .analyze-detail .steps p { grid-column: 2; margin: 0; }
+  .cal-home .scenario-composition { width: calc(100% - 24px); padding: 24px 20px; }
+  .cal-home .scenario-composition .intelligence-grid h2 { font-size: 30px; }
+  .cal-home .scenario-composition .viewer-wrap { height: 300px; }
+  .cal-home .official-knowledge { padding-top: 48px; padding-bottom: 48px; }
+  .cal-home .official-knowledge article { padding: 20px; }
+  .cal-home .final { width: calc(100% - 24px); padding: 32px 20px; }
+  .cal-home .final .section { padding: 0; }
+  .cal-home .final .ask { display: grid; grid-template-columns: 24px minmax(0, 1fr); }
+  .cal-home .final .ask button { grid-column: 1 / -1; width: 100%; }
+  .cal-home footer { margin-top: 24px; font-size: 11px; }
+}
+@media (max-width: 420px) {
+  .cal-home .nav-actions { gap: 6px; }
+  .cal-home .features { grid-template-columns: minmax(0, 1fr); }
+  .cal-home .feature { min-height: 0; }
+  .cal-home .feature .icon { margin-top: 16px; }
+  .cal-home .importance span { grid-template-columns: minmax(92px, 1fr) minmax(30px, .8fr) 51px; gap: 6px; font-size: 10px; }
+  .cal-home :is(.explore-copy dl, .official-knowledge dl) { grid-template-columns: minmax(78px, .4fr) minmax(0, 1fr); }
+  .cal-workspace #chat-header { gap: 6px; }
+  .cal-workspace .chat-header-right { margin-left: auto; }
+}
+
+/* 10. Accessibility: native hidden/collapse states remain authoritative */
+@media (prefers-reduced-motion: reduce) {
+  html:has(body.cal-home), html:has(body.cal-workspace) { scroll-behavior: auto !important; }
+  .cal-home *, .cal-home *::before, .cal-home *::after,
+  .cal-workspace *, .cal-workspace *::before, .cal-workspace *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .cal-workspace .loading-dots::after { content: "..."; animation: none !important; }
+}
+@media (forced-colors: active) {
+  .cal-home :is(.button, button, .ask),
+  .cal-workspace :is(button, input, textarea, select, .chat-message, .agent-turn) { border: 1px solid ButtonText; box-shadow: none; }
+  .cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"] { appearance: auto; }
+  .cal-workspace :is(#menu, #sidebar-layers-pane) .layer-toggle input[type="checkbox"]::before { display: none; }
+  .cal-home :is(a, button, input, summary):focus-visible,
+  .cal-workspace :is(a, button, input, textarea, select, summary):focus-visible,
+  .cal-workspace :is(#menu, #sidebar-layers-pane) :is(button, input, select, summary):focus-visible,
+  .cal-workspace #chat-input:focus-visible,
+  .cal-workspace #api-settings-panel input:focus-visible { outline-color: Highlight; }
+}
+
+/* 11. Landing polish: tighter editorial hero with a clearer product focus */
+.cal-home .cal-hero-frame { gap: 56px; margin-top: 12px; margin-bottom: 32px; padding: 44px 52px; background: linear-gradient(135deg, #fff 0%, #fff 66%, #fafafa 100%); box-shadow: 0 14px 34px rgb(16 16 16 / 7%); }
+.cal-home .hero h1 { max-width: 680px; font-size: clamp(44px, 4.5vw, 64px); line-height: 1.02; letter-spacing: -.065em; }
+.cal-home .hero.hero-text .eyebrow { margin-bottom: 16px; border-color: #d9dde3; background: #f7f8fa; }
+.cal-home .ask-wrap { margin-top: 26px; }
+.cal-home .ask { border-color: #cbd1d9; box-shadow: 0 5px 14px rgb(16 16 16 / 5%); }
+.cal-home .cal-hero-copy .ask button { min-height: 44px; border-radius: 8px; font-weight: 600; letter-spacing: -.01em; }
+.cal-home .cal-hero-product { border-color: #d9dde3; border-radius: 14px; box-shadow: 0 10px 24px rgb(16 16 16 / 8%); }
+.cal-home .cal-product-header { padding: 18px 20px; }
+.cal-home .cal-product-media { min-height: 0; padding: 14px; background: #f7f8fa; }
+.cal-home .cal-product-media img { height: 292px; object-fit: cover; }
+.cal-home .cal-product-flow { margin-inline: 18px; padding: 14px 0; }
+.cal-home .cal-product-flow > div { background: #fafafa; }
+.cal-home .cal-hero-product > figcaption { padding-inline: 20px; }
+@media (max-width: 980px) {
+  .cal-home .cal-hero-frame { gap: 32px; padding: 38px 32px; }
+  .cal-home .hero h1 { font-size: clamp(40px, 6vw, 56px); }
+}
+
