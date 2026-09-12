@@ -4,5 +4,5 @@ versions:
   v1.1:
     config: configs/agents/v1.1.yaml
 aliases:
-  baseline: v1.0
-  latest: v1.1
+  gateway_off: v1.0
+  gateway_on: v1.1

@@ -1,0 +1,6 @@
+data_id: tokyo-lst-current
+data_version: current
+lst_grid: app/data/tokyo_lst_grid.parquet
+boundary_dataset: eStat-2020
+rf_version: rf_current
+rag_version: policy_rag_v1

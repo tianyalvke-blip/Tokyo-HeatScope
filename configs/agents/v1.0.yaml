@@ -1,4 +1,4 @@
-agent_id: heatscope-v1.0
+agent_id: heatscope-v1.0-compatible
 agent_version: v1.0
 release_tag: agent-v1.0.0
 implementation_commit: e866dc8
@@ -7,7 +7,7 @@ model:
   name: ${HEATSCOPE_LLM_MODEL:-deepseek-v4-flash}
   temperature: 0
 planner:
-  type: prompt_routed
+  type: prompt_routed_gateway_off
   max_steps: 10
 intent_gateway:
   enabled: false

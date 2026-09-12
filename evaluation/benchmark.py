@@ -19,17 +19,20 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--agent", help="One registry version or alias")
     group.add_argument("--agents", nargs="+", help="Two or more registry versions or aliases")
+    group.add_argument("--stack", help="One complete App + Agent + Data stack")
+    group.add_argument("--stacks", nargs="+", help="Two or more complete stacks")
     parser.add_argument("--dataset", required=True, help="Dataset basename, e.g. core_v1")
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--model", help="Reserved component override")
     parser.add_argument("--max-steps", type=int, help="Reserved component override")
     args = parser.parse_args()
-    versions = args.agents or [args.agent]
+    versions = args.agents or ([args.agent] if args.agent else [])
+    stacks = args.stacks or ([args.stack] if args.stack else None)
     overrides = {k: v for k, v in {"model": {"name": args.model} if args.model else None, "max_steps": args.max_steps}.items() if v is not None}
-    run_id, items = asyncio.run(run_benchmark(versions, args.dataset, workers=args.workers, timeout_s=args.timeout, overrides=overrides))
+    run_id, items = asyncio.run(run_benchmark(versions, args.dataset, workers=args.workers, timeout_s=args.timeout, overrides=overrides, stack_names=stacks))
     print(f"Run: {run_id}")
-    print(summarize(items, versions))
+    print(summarize(items, stacks or versions))
     print(f"\nStored: evaluation/results/runs.duckdb\nRaw traces: evaluation/results/raw/{run_id}")
     return 0
 

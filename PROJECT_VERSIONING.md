@@ -8,6 +8,7 @@ silently change the Agent's reasoning policy or spatial data pipeline.
 | Track | Owns | Current release |
 |---|---|---|
 | Project | Runnable release composition and deployment record | `project-v1.1.0` |
+| App | Map workspace, tool runtime and data loading | `app-v1.1.0` |
 | UI | Presentation and interaction | `ui-v1.1.0` |
 | Agent | Prompt, routing, tool policy and evidence constraints | `agent-v1.1.0` |
 | Data | Source datasets, schema and derived assets | managed by dataset metadata and rebuild scripts |

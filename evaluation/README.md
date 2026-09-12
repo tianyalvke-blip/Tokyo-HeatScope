@@ -8,11 +8,15 @@ It does not replace the map application or the Agent loop.
 ```powershell
 .venv\Scripts\python evaluation\benchmark.py --agent v1.1 --dataset core_v1
 .venv\Scripts\python evaluation\benchmark.py --agents v1.0 v1.1 --dataset core_v1 --workers 4
+.venv\Scripts\python evaluation\benchmark.py --stacks stack-v1.0 stack-v1.1 --dataset core_v1 --workers 4
 .venv\Scripts\python evaluation\dashboard.py
 ```
 
-Aliases `baseline` and `latest` resolve through `agents/registry.yaml`; the UI
-shows real version numbers (`v1.0`, `v1.1`). Live model execution needs
+Agent aliases `gateway_off` and `gateway_on` resolve through `agents/registry.yaml`.
+Stack aliases `baseline` and `latest` resolve through `stacks/registry.yaml`; the UI
+shows real version numbers (`v1.0`, `v1.1`). For full combinations, use
+`stacks/registry.yaml`: both initial stacks intentionally use the current App
+and Data, while varying only the Agent. Live model execution needs
 `HEATSCOPE_LLM_ENDPOINT` and `HEATSCOPE_LLM_API_KEY`. Without both variables,
 the adapter uses a deterministic fixture mode to test the real Agent loop,
 tool bridge, trace, scoring and storage plumbing without sending API requests.

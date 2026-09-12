@@ -1,0 +1,5 @@
+versions:
+  current:
+    config: configs/apps/current.yaml
+aliases:
+  latest: current

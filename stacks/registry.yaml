@@ -1,0 +1,14 @@
+versions:
+  stack-v1.0:
+    app: current
+    agent: v1.0
+    data: current
+    purpose: Current App baseline with the v1.0-compatible prompt-routed Agent.
+  stack-v1.1:
+    app: current
+    agent: v1.1
+    data: current
+    purpose: Current App with Intent Gateway and Evidence check.
+aliases:
+  baseline: stack-v1.0
+  latest: stack-v1.1

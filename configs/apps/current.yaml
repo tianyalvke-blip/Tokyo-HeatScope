@@ -1,0 +1,6 @@
+app_id: heatscope-current
+app_version: current
+source_ref: working-tree-current
+map_tools_version: current
+mcp_tools_version: current
+notes: Current HeatScope map, tool implementations and local runtime assets.
