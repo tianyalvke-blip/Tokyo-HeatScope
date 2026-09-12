@@ -1,0 +1,10 @@
+evaluator_id: heatscope-evaluator-v1.0
+evaluator_version: v1.0
+release_tag: evaluator-v1.0.0
+scope:
+  - tool_selection
+  - tool_arguments
+  - execution_success
+  - trace_completeness
+mode: deterministic
+notes: Initial deterministic evaluator; no LLM judge and no spatial/numerical scoring.

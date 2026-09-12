@@ -1,0 +1,5 @@
+versions:
+  v1.0:
+    config: configs/evaluators/v1.0.yaml
+aliases:
+  latest: v1.0

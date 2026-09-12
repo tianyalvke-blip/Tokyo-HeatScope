@@ -9,6 +9,7 @@ It does not replace the map application or the Agent loop.
 .venv\Scripts\python evaluation\benchmark.py --agent v1.1 --dataset core_v1
 .venv\Scripts\python evaluation\benchmark.py --agents v1.0 v1.1 --dataset core_v1 --workers 4
 .venv\Scripts\python evaluation\benchmark.py --stacks stack-v1.0 stack-v1.1 --dataset core_v1 --workers 4
+.venv\Scripts\python evaluation\benchmark.py --stacks stack-v1.0 stack-v1.1 --dataset core_v1 --evaluator v1.0
 .venv\Scripts\python evaluation\dashboard.py
 ```
 
@@ -36,6 +37,7 @@ meaningful model-quality comparison.
 - DuckDB: `evaluation/results/runs.duckdb`
 - Raw result/trace: `evaluation/results/raw/<run_id>/`
 - Evaluators: `evaluation/evaluators/`
+- Evaluator Registry: `evaluators/registry.yaml`
 
 Normalized trace contains observable `user_input`, routing, LLM call metadata,
 tool call/result, SQL/RAG/map events, retry/error and final answer. Raw payloads

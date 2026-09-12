@@ -11,6 +11,7 @@ silently change the Agent's reasoning policy or spatial data pipeline.
 | App | Map workspace, tool runtime and data loading | `app-v1.1.0` |
 | UI | Presentation and interaction | `ui-v1.1.0` |
 | Agent | Prompt, routing, tool policy and evidence constraints | `agent-v1.1.0` |
+| Evaluator | Benchmark scoring rules and score meanings | `evaluator-v1.0.0` |
 | Data | Source datasets, schema and derived assets | managed by dataset metadata and rebuild scripts |
 
 ## Current release matrix

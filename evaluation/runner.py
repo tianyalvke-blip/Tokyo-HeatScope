@@ -21,8 +21,20 @@ def load_dataset(name: str) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def evaluate(case: dict[str, Any], result: dict[str, Any]) -> list[dict[str, Any]]:
-    return [evaluator.evaluate(case, result) for evaluator in DEFAULT_EVALUATORS]
+def load_evaluator_release(requested: str) -> tuple[str, dict[str, Any], list[Any]]:
+    registry = yaml.safe_load((ROOT / "evaluators" / "registry.yaml").read_text(encoding="utf-8"))
+    version = registry.get("aliases", {}).get(requested, requested)
+    entry = registry.get("versions", {}).get(version)
+    if not entry:
+        raise ValueError(f"Unknown evaluator version '{requested}'")
+    manifest = yaml.safe_load((ROOT / entry["config"]).read_text(encoding="utf-8"))
+    enabled = set(manifest.get("scope", []))
+    evaluators = [evaluator for evaluator in DEFAULT_EVALUATORS if evaluator.name in enabled]
+    return version, manifest, evaluators
+
+
+def evaluate(case: dict[str, Any], result: dict[str, Any], evaluators: list[Any]) -> list[dict[str, Any]]:
+    return [evaluator.evaluate(case, result) for evaluator in evaluators]
 
 
 def resolve_stacks(names: list[str]) -> list[dict[str, Any]]:
@@ -44,9 +56,10 @@ def resolve_stacks(names: list[str]) -> list[dict[str, Any]]:
 
 async def run_benchmark(versions: list[str], dataset_name: str, *, workers: int = 1,
                         timeout_s: int = 180, overrides: dict[str, Any] | None = None,
-                        stack_names: list[str] | None = None) -> tuple[str, list[dict[str, Any]]]:
+                        stack_names: list[str] | None = None, evaluator_version: str = "v1.0") -> tuple[str, list[dict[str, Any]]]:
     cases = load_dataset(dataset_name)
     registry = AgentRegistry()
+    evaluator_id, evaluator_manifest, evaluators = load_evaluator_release(evaluator_version)
     targets = resolve_stacks(stack_names) if stack_names else [{"label": registry.resolve(version)[0], "agent": registry.resolve(version)[0], "stack": None} for version in versions]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     run_id = f"{stamp}_{dataset_name}"
@@ -54,7 +67,7 @@ async def run_benchmark(versions: list[str], dataset_name: str, *, workers: int 
     raw_dir = results_dir / "raw" / run_id
     raw_dir.mkdir(parents=True, exist_ok=True)
     store = ResultStore(results_dir / "runs.duckdb")
-    manifest = {target["label"]: {**load_agent(target["agent"], timeout_s=timeout_s).manifest(overrides or {}), "stack": target["stack"]} for target in targets}
+    manifest = {target["label"]: {**load_agent(target["agent"], timeout_s=timeout_s).manifest(overrides or {}), "stack": target["stack"], "evaluator": {"version": evaluator_id, **evaluator_manifest}} for target in targets}
     run = {"run_id": run_id, "dataset_version": dataset_name, "started_at": datetime.now(timezone.utc).isoformat(),
            "git_commit": git_commit(), "manifest": manifest}
     store.save_run(run)
@@ -66,7 +79,7 @@ async def run_benchmark(versions: list[str], dataset_name: str, *, workers: int 
             result = await adapter.run(case["query"], case["case_id"], overrides)
             result["agent_version"] = target["label"]
             result.setdefault("manifest", {})["stack"] = target["stack"]
-            scores = evaluate(case, result)
+            scores = evaluate(case, result, evaluators)
             raw_path = raw_dir / f"{case['case_id']}__{target['label']}.json"
             raw_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
             store.save_result(run_id, result, scores, str(raw_path.relative_to(ROOT)))
