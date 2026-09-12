@@ -16,6 +16,7 @@
 - GitHub：<https://github.com/tianyalvke-blip/Tokyo-HeatScope>
 - 默认分支：`main`；正式版本以 Git tag 为准。
 - 服务器工作区可能由部署流程直接更新，**不要在服务器上盲目 `git pull`**；更新前先做快照并核对差异。
+- 版本管理：[`PROJECT_VERSIONING.md`](PROJECT_VERSIONING.md)（组合发布）、[`UI_VERSIONING.md`](UI_VERSIONING.md)（视觉层）、[`AGENT_VERSIONING.md`](AGENT_VERSIONING.md)（Agent 行为层）。
 
 ## 线上服务器
 
