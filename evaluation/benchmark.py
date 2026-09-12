@@ -27,11 +27,12 @@ def main() -> int:
     parser.add_argument("--evaluator", default="v1.0", help="Evaluator registry version")
     parser.add_argument("--model", help="Reserved component override")
     parser.add_argument("--max-steps", type=int, help="Reserved component override")
+    parser.add_argument("--run-id", help="Optional explicit run identifier (used by the local dashboard)")
     args = parser.parse_args()
     versions = args.agents or ([args.agent] if args.agent else [])
     stacks = args.stacks or ([args.stack] if args.stack else None)
     overrides = {k: v for k, v in {"model": {"name": args.model} if args.model else None, "max_steps": args.max_steps}.items() if v is not None}
-    run_id, items = asyncio.run(run_benchmark(versions, args.dataset, workers=args.workers, timeout_s=args.timeout, overrides=overrides, stack_names=stacks, evaluator_version=args.evaluator))
+    run_id, items = asyncio.run(run_benchmark(versions, args.dataset, workers=args.workers, timeout_s=args.timeout, overrides=overrides, stack_names=stacks, evaluator_version=args.evaluator, run_id=args.run_id))
     print(f"Run: {run_id}")
     print(summarize(items, stacks or versions))
     print(f"\nStored: evaluation/results/runs.duckdb\nRaw traces: evaluation/results/raw/{run_id}")

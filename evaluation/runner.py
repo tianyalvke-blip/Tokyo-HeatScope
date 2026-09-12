@@ -56,13 +56,14 @@ def resolve_stacks(names: list[str]) -> list[dict[str, Any]]:
 
 async def run_benchmark(versions: list[str], dataset_name: str, *, workers: int = 1,
                         timeout_s: int = 180, overrides: dict[str, Any] | None = None,
-                        stack_names: list[str] | None = None, evaluator_version: str = "v1.0") -> tuple[str, list[dict[str, Any]]]:
+                        stack_names: list[str] | None = None, evaluator_version: str = "v1.0",
+                        run_id: str | None = None) -> tuple[str, list[dict[str, Any]]]:
     cases = load_dataset(dataset_name)
     registry = AgentRegistry()
     evaluator_id, evaluator_manifest, evaluators = load_evaluator_release(evaluator_version)
     targets = resolve_stacks(stack_names) if stack_names else [{"label": registry.resolve(version)[0], "agent": registry.resolve(version)[0], "stack": None} for version in versions]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    run_id = f"{stamp}_{dataset_name}"
+    run_id = run_id or f"{stamp}_{dataset_name}"
     results_dir = ROOT / "evaluation" / "results"
     raw_dir = results_dir / "raw" / run_id
     raw_dir.mkdir(parents=True, exist_ok=True)
