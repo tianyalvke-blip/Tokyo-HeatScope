@@ -180,7 +180,7 @@ export class Agent {
         let localOnlyStreak = 0;
 
         try {
-        if (!resuming) {
+        if (!resuming && this.intentGateway.enabled) {
             this.onThinkingStart();
             try {
                 taskFrame = await this.intentGateway.classify({
@@ -203,7 +203,7 @@ export class Agent {
             }
 
             turnMessages.splice(1, 0, { role: 'system', content: taskFrameInstruction(taskFrame) });
-        } else if (taskFrame) {
+        } else if (resuming && taskFrame) {
             // A resumed checkpoint keeps the same admission decision and tool
             // permissions; the user's steer is handled inside that live turn.
             if (this.showTaskFrame) this.onTaskFrame(taskFrame);

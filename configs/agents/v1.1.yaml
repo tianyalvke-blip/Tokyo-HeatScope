@@ -1,0 +1,20 @@
+agent_id: heatscope-v1.1
+agent_version: v1.1
+release_tag: agent-v1.1.0
+implementation_commit: 657f9bc
+adapter: heatscope_node
+model:
+  name: ${HEATSCOPE_LLM_MODEL:-deepseek-v4-flash}
+  temperature: 0
+planner:
+  type: intent_gateway
+  max_steps: 10
+intent_gateway:
+  enabled: true
+tools:
+  profile: heatscope_core
+rag:
+  enabled: true
+  version: policy_rag_v1
+rf:
+  version: rf_current

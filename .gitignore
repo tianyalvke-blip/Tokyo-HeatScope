@@ -77,6 +77,10 @@ docs/superpowers/
 .worktrees/
 coverage/
 
+# Benchmark outputs are reproducible local artifacts; datasets and evaluator code stay tracked.
+evaluation/results/raw/
+evaluation/results/*.duckdb
+
 # Claude Code (local, machine-specific). Shared project config such as
 # .claude/settings.json or .claude/commands/ can still be committed.
 .claude/settings.local.json

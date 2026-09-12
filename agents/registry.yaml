@@ -1,0 +1,8 @@
+versions:
+  v1.0:
+    config: configs/agents/v1.0.yaml
+  v1.1:
+    config: configs/agents/v1.1.yaml
+aliases:
+  baseline: v1.0
+  latest: v1.1
