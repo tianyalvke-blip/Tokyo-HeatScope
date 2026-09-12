@@ -167,6 +167,19 @@ body:has(#chat-container.collapsed) #chat-reopen {
     letter-spacing: -0.02em;
 }
 
+.agent-version-badge {
+    margin-left: 8px;
+    padding: 2px 6px;
+    border: 1px solid rgba(23, 117, 189, 0.28);
+    border-radius: 999px;
+    color: #176aa5;
+    background: rgba(23, 117, 189, 0.08);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
 .chat-header-right {
     display: flex;
     align-items: center;

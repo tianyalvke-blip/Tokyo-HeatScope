@@ -1,4 +1,5 @@
 import { IntentGateway, taskFrameInstruction, validateToolResults } from './intent-gateway.js';
+import { CURRENT_AGENT_RELEASE } from './agent-version.js';
 
 /**
  * Agent - LLM orchestration loop
@@ -42,6 +43,7 @@ export class Agent {
         this.suspendedTurn = null;
         this.autoApprove = config.auto_approve ?? true;
         this.intentGateway = new IntentGateway(config.intent_gateway || {});
+        this.agentRelease = CURRENT_AGENT_RELEASE;
         this.showTaskFrame = config.intent_gateway?.show_task_frame !== false;
         this.sessionId = (crypto.randomUUID && typeof crypto.randomUUID === 'function')
             ? crypto.randomUUID()

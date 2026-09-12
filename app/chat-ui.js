@@ -6,6 +6,7 @@
  */
 
 import { getStrings, setLang } from './i18n.js';
+import { CURRENT_AGENT_RELEASE } from './agent-version.js';
 
 /**
  * Rewrite `s3://bucket/path` URLs to the public HTTPS endpoint so that the
@@ -139,6 +140,7 @@ export class ChatUI {
     /* ------------------------------------------------------------------ */
 
     init() {
+        this.showAgentVersion();
         // Default placeholder, restored by _syncInputControls when not paused.
         this._defaultPlaceholder = this.inputEl.placeholder;
 
@@ -225,6 +227,15 @@ export class ChatUI {
 
         // Render welcome message if configured
         this.renderWelcome();
+    }
+
+    showAgentVersion() {
+        if (!this.headerEl || this.headerEl.querySelector('.agent-version-badge')) return;
+        const badge = document.createElement('span');
+        badge.className = 'agent-version-badge';
+        badge.textContent = `Agent v${CURRENT_AGENT_RELEASE.version}`;
+        badge.title = `${CURRENT_AGENT_RELEASE.label} · ${CURRENT_AGENT_RELEASE.gitTag}`;
+        this.headerEl.querySelector('.chat-brand')?.appendChild(badge);
     }
 
     populateModelSelector() {
