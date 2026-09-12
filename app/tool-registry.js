@@ -79,8 +79,11 @@ export class ToolRegistry {
      * Get all tools formatted for the OpenAI Chat Completions API.
      * @returns {Array} tools[] array
      */
-    getToolsForLLM() {
-        return [...this.tools.values()].map(tool => ({
+    getToolsForLLM(allowedNames = null) {
+        const allowed = allowedNames == null ? null : new Set(allowedNames);
+        return [...this.tools.values()]
+            .filter(tool => allowed == null || allowed.has(tool.name))
+            .map(tool => ({
             type: 'function',
             function: {
                 name: tool.name,

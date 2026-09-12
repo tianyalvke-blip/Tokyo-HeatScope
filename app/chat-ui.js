@@ -210,6 +210,8 @@ export class ChatUI {
         // Wire agent callbacks
         this.agent.onThinkingStart = () => this.showThinking();
         this.agent.onThinkingEnd = () => this.hideThinking();
+        this.agent.onTaskFrame = (frame) => this.showTaskFrame(frame);
+        this.agent.onValidation = (validation) => this.showValidation(validation);
         this.agent.onReasoning = (text, iter) => this.showReasoning(text, iter);
         this.agent.onToolProposal = (calls, text, iter, autoApproved) =>
             this.showToolProposal(calls, text, iter, autoApproved);
@@ -851,6 +853,71 @@ export class ChatUI {
     showToolExecuting(_calls) {
         // The tool row already shows a running spinner from showToolProposal
         // onward; no separate indicator needed in the timeline layout.
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Intent gateway + evidence validation rows                          */
+    /* ------------------------------------------------------------------ */
+
+    showTaskFrame(frame) {
+        if (!this.currentTurn || !frame) return;
+        this.removeThinkingRow();
+
+        const row = document.createElement('details');
+        row.className = 'agent-turn-row reasoning task-frame';
+
+        const summary = document.createElement('summary');
+        summary.className = 'agent-turn-row-summary';
+        const status = this.escapeHtml(frame.status || 'unknown');
+        const intent = this.escapeHtml(frame.intent || 'unknown');
+        summary.innerHTML = `<span class="row-icon">◇</span><span class="row-label">Intent · ${intent}</span>`
+            + `<span class="row-status ${status === 'supported' ? 'done' : 'error'}">${status}</span>`;
+
+        const body = document.createElement('div');
+        body.className = 'agent-turn-row-body';
+        const visibleFrame = {
+            status: frame.status,
+            intent: frame.intent,
+            spatial_scope: frame.spatial_scope,
+            time_period: frame.time_period,
+            indicator: frame.indicator,
+            method: frame.method,
+            output: frame.output,
+            missing_fields: frame.missing_fields,
+            safety_notes: frame.safety_notes,
+            allowed_tools: frame.allowed_tools,
+            confidence: frame.confidence,
+        };
+        body.innerHTML = `<pre class="tool-output"><code>${this.escapeHtml(JSON.stringify(visibleFrame, null, 2))}</code></pre>`;
+
+        row.appendChild(summary);
+        row.appendChild(body);
+        this.currentTurn.body.appendChild(row);
+        this.currentTurn.stepCount++;
+        this.scrollToBottom();
+    }
+
+    showValidation(validation) {
+        if (!this.currentTurn || !validation) return;
+
+        const row = document.createElement('details');
+        row.className = 'agent-turn-row reasoning evidence-validation';
+
+        const summary = document.createElement('summary');
+        summary.className = 'agent-turn-row-summary';
+        const valid = validation.status === 'valid';
+        summary.innerHTML = '<span class="row-icon">✓</span><span class="row-label">Evidence check</span>'
+            + `<span class="row-status ${valid ? 'done' : 'error'}">${this.escapeHtml(validation.status)}</span>`;
+
+        const body = document.createElement('div');
+        body.className = 'agent-turn-row-body';
+        body.innerHTML = `<pre class="tool-output"><code>${this.escapeHtml(JSON.stringify(validation, null, 2))}</code></pre>`;
+
+        row.appendChild(summary);
+        row.appendChild(body);
+        this.currentTurn.body.appendChild(row);
+        this.currentTurn.stepCount++;
+        this.scrollToBottom();
     }
 
     /* ------------------------------------------------------------------ */

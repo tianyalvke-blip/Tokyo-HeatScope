@@ -1,3 +1,5 @@
+import { IntentGateway, taskFrameInstruction, validateToolResults } from './intent-gateway.js';
+
 /**
  * Agent - LLM orchestration loop
  * 
@@ -39,6 +41,8 @@ export class Agent {
         // at a checkpoint. null when no turn is suspended.
         this.suspendedTurn = null;
         this.autoApprove = config.auto_approve ?? true;
+        this.intentGateway = new IntentGateway(config.intent_gateway || {});
+        this.showTaskFrame = config.intent_gateway?.show_task_frame !== false;
         this.sessionId = (crypto.randomUUID && typeof crypto.randomUUID === 'function')
             ? crypto.randomUUID()
             : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -52,6 +56,8 @@ export class Agent {
         this.onThinkingStart = () => { };
         this.onThinkingEnd = () => { };
         this.onReasoning = () => { };
+        this.onTaskFrame = () => { };
+        this.onValidation = () => { };
         this.onToolProposal = async () => ({ approved: true }); // auto-approve by default
         this.onToolExecuting = () => { };
         this.onToolResults = () => { };
@@ -111,7 +117,7 @@ export class Agent {
      * the user entered their message.
      *
      * @param {string} userMessage
-     * @returns {Promise<{response: string, sqlQueries: string[], cancelled: boolean}>}
+     * @returns {Promise<{response: string, sqlQueries: string[], cancelled: boolean, taskFrame?: Object}>}
      */
     async processMessage(userMessage) {
         // Track SQL queries for this turn. When resuming a suspended turn, carry
@@ -134,6 +140,7 @@ export class Agent {
         abortPromise.catch(() => {});
         const withAbort = (p) => Promise.race([p, abortPromise]);
 
+        const recentMessages = this.messages.slice(-6);
         this.messages.push({ role: 'user', content: userMessage });
 
         let turnMessages;
@@ -152,13 +159,17 @@ export class Agent {
             ];
         }
 
-        const tools = this.toolRegistry.getToolsForLLM();
+        const allTools = this.toolRegistry.getToolsForLLM();
+        const availableToolNames = allTools.map(tool => tool.function.name);
         const modelConfig = this.getModelConfig();
         let endpoint = modelConfig.endpoint;
         if (!endpoint.endsWith('/chat/completions')) {
             endpoint = endpoint.replace(/\/$/, '') + '/chat/completions';
         }
 
+        let taskFrame = resuming?.taskFrame || null;
+        let tools = allTools;
+        let allowedToolNames = new Set(availableToolNames);
         let iterations = 0;
         // Consecutive local-only tool rounds. Local map tools never increment
         // `iterations` (they're cheap and never gated), so a model stuck
@@ -167,17 +178,51 @@ export class Agent {
         let localOnlyStreak = 0;
 
         try {
+        if (!resuming) {
+            this.onThinkingStart();
+            try {
+                taskFrame = await this.intentGateway.classify({
+                    userMessage,
+                    recentMessages,
+                    availableToolNames,
+                    request: (messages) => this.callLLM(endpoint, modelConfig, messages, []),
+                });
+            } finally {
+                this.onThinkingEnd();
+            }
+
+            if (this.showTaskFrame) this.onTaskFrame(taskFrame);
+
+            if (taskFrame.status !== 'supported') {
+                const response = taskFrame.user_response;
+                this.messages.push({ role: 'assistant', content: response });
+                this.suspendedTurn = null;
+                return { response, sqlQueries, cancelled: false, taskFrame };
+            }
+
+            turnMessages.splice(1, 0, { role: 'system', content: taskFrameInstruction(taskFrame) });
+        } else if (taskFrame) {
+            // A resumed checkpoint keeps the same admission decision and tool
+            // permissions; the user's steer is handled inside that live turn.
+            if (this.showTaskFrame) this.onTaskFrame(taskFrame);
+        }
+
+        if (taskFrame?.allowed_tools) {
+            allowedToolNames = new Set(taskFrame.allowed_tools);
+            tools = this.toolRegistry.getToolsForLLM(taskFrame.allowed_tools);
+        }
+
         while (true) {
             const threshold = this.activeThreshold();
             if (threshold && iterations >= threshold) {
-                return await this._checkpoint(endpoint, modelConfig, turnMessages, sqlQueries, iterations);
+                return await this._checkpoint(endpoint, modelConfig, turnMessages, sqlQueries, iterations, taskFrame);
             }
             // Runaway guard: a turn that does `threshold` local-only rounds in a row
             // (with no remote round and no final answer) is stuck looping, not making
             // progress. Checkpoint it like any other cap. A remote round resets the
             // streak, so legitimately tool-heavy turns are unaffected.
             if (threshold && localOnlyStreak >= threshold) {
-                return await this._checkpoint(endpoint, modelConfig, turnMessages, sqlQueries, iterations);
+                return await this._checkpoint(endpoint, modelConfig, turnMessages, sqlQueries, iterations, taskFrame);
             }
             this.onThinkingStart();
 
@@ -243,6 +288,13 @@ export class Agent {
                 // Execute all tool calls
                 const results = [];
                 for (const tc of calls) {
+                    if (!allowedToolNames.has(tc.function.name)) {
+                        const err = `Blocked by Intent Gateway: ${tc.function.name} is not allowed for intent ${taskFrame?.intent || 'unknown'}.`;
+                        turnMessages.push({ role: 'tool', tool_call_id: tc.id, content: err });
+                        results.push({ name: tc.function.name, result: err, source: 'error', success: false });
+                        continue;
+                    }
+
                     let args;
                     try {
                         args = typeof tc.function.arguments === 'string'
@@ -278,6 +330,15 @@ export class Agent {
                 // Show results
                 this.onToolResults(results, iterations);
 
+                // A deterministic validator marks failures/empty results before
+                // the next planning round so they cannot silently become evidence.
+                const validation = validateToolResults(results, taskFrame);
+                this.onValidation(validation, iterations);
+                turnMessages.push({
+                    role: 'system',
+                    content: `TOOL RESULT VALIDATION\n${JSON.stringify(validation)}`,
+                });
+
                 // Continue loop — LLM will see the results
                 continue;
             }
@@ -288,7 +349,8 @@ export class Agent {
                 return {
                     response: 'I received your question but had trouble generating a response. Please try rephrasing.',
                     sqlQueries,
-                    cancelled: false
+                    cancelled: false,
+                    taskFrame,
                 };
             }
 
@@ -296,11 +358,11 @@ export class Agent {
             this.messages.push({ role: 'assistant', content });
             this.suspendedTurn = null;
 
-            return { response: content, sqlQueries, cancelled: false };
+            return { response: content, sqlQueries, cancelled: false, taskFrame };
         }
         } catch (err) {
             if (err.name === 'AbortError') {
-                return { response: null, sqlQueries, cancelled: true };
+                return { response: null, sqlQueries, cancelled: true, taskFrame };
             }
             throw err;
         }
@@ -312,7 +374,7 @@ export class Agent {
      * user message resumes it, and emit onCheckpoint. Returns a result the UI
      * renders as a checkpoint (summary + Continue), not an error.
      */
-    async _checkpoint(endpoint, modelConfig, turnMessages, sqlQueries, iterations) {
+    async _checkpoint(endpoint, modelConfig, turnMessages, sqlQueries, iterations, taskFrame = null) {
         const fallbackSummary = `I've run ${iterations} data queries so far and paused to check in. `
             + `Let me know if you'd like me to continue.`;
 
@@ -335,8 +397,8 @@ export class Agent {
                 // instruction we just appended) so "continue" resumes the
                 // investigation rather than discarding the remote rounds.
                 turnMessages.pop();
-                this.suspendedTurn = { turnMessages, sqlQueries };
-                return { response: null, sqlQueries, cancelled: true };
+                this.suspendedTurn = { turnMessages, sqlQueries, taskFrame };
+                return { response: null, sqlQueries, cancelled: true, taskFrame };
             }
             summary = fallbackSummary;
         }
@@ -346,11 +408,11 @@ export class Agent {
 
         // Persist the live turn so the next message resumes it instead of
         // rebuilding from scratch. Record the summary in cross-turn history.
-        this.suspendedTurn = { turnMessages, sqlQueries };
+        this.suspendedTurn = { turnMessages, sqlQueries, taskFrame };
         this.messages.push({ role: 'assistant', content: summary });
 
         this.onCheckpoint(summary, iterations);
-        return { response: summary, sqlQueries, checkpoint: true, cancelled: false };
+        return { response: summary, sqlQueries, checkpoint: true, cancelled: false, taskFrame };
     }
 
     /**
