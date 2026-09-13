@@ -7,6 +7,7 @@
 
 import { getStrings, setLang } from './i18n.js';
 import { CURRENT_AGENT_RELEASE } from './agent-version.js';
+import { ChartRenderer } from './chart-renderer.js';
 
 /**
  * Rewrite `s3://bucket/path` URLs to the public HTTPS endpoint so that the
@@ -108,7 +109,7 @@ export class ChatUI {
      *     container, messages, input, send, mic, header, footer, footerRight,
      *   }
      */
-    constructor(agent, config, mount) {
+    constructor(agent, config, mount, { chartStore = null } = {}) {
         this.agent = agent;
         this.config = config;
         this.busy = false;
@@ -124,6 +125,10 @@ export class ChatUI {
         this.footerEl = mount.footer;
         this.footerRightEl = mount.footerRight;
         this.modelSelector = mount.footerRight.querySelector('#model-selector');
+        this.chartStore = chartStore;
+        this.chartRenderer = chartStore
+            ? new ChartRenderer(chartStore, this.messagesEl, () => this.scrollToBottom())
+            : null;
 
         // Voice input state. The voice + transcriber modules are loaded
         // lazily via dynamic import() — only when `config.transcription_model`
@@ -1084,6 +1089,7 @@ export class ChatUI {
      * icon and append the result panels to the body.
      */
     showToolResults(results, iteration) {
+        this.chartStore?.ingestToolResults(results);
         if (!this.currentTurn) return;
         const row = this.currentTurn.rowsByIter.get(iteration);
         if (!row) return;

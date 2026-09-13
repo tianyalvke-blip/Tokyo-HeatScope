@@ -15,6 +15,7 @@ import { Agent } from './agent.js';
 import { ChatUI } from './chat-ui.js';
 import { buildLayout, sidebarHooks } from './layout-manager.js';
 import { ResultLayerManager } from './result-layer-manager.js';
+import { ChartStore, createChartTools } from './chart-store.js';
 import { setLang, getLang, getStrings } from './i18n.js';
 
 async function main() {
@@ -237,6 +238,8 @@ async function main() {
 
     /* ── 5. Build tool registry ───────────────────────────────────────── */
     const toolRegistry = new ToolRegistry();
+    const chartStore = new ChartStore();
+    for (const tool of createChartTools(chartStore)) toolRegistry.registerLocal(tool);
 
     // Geocoder backend, shared by two independently-toggled surfaces:
     //   • the `geocode` agent tool — ON by default (opt-out: geocoder.enabled=false)
@@ -408,7 +411,16 @@ async function main() {
      * applied via setSystemPrompt() once it arrives below. */
     const agent = new Agent(appConfig, toolRegistry);
     agent.setSystemPrompt(baseSystemPrompt);
-    const ui = new ChatUI(agent, appConfig, layoutRefs.chatMount);
+    agent.addContextProvider(() => {
+        const active = chartStore.get();
+        if (!active) return '';
+        return `ACTIVE EDITABLE CHART (use update_chart, do not recreate it):\n${JSON.stringify({
+            chart_id: active.chart_id, title: active.title, x: active.x, y: active.y,
+            series: active.series.map(s => ({ id: s.id, series_type: s.short_id, name: s.name, visible: s.visible })),
+            source: active.source,
+        })}`;
+    });
+    const ui = new ChatUI(agent, appConfig, layoutRefs.chatMount, { chartStore });
     console.log('[main] Agent + UI ready (welcome rendered, prompt pending)');
 
     // Read server-provided prompt (if any) and update the agent's prompt.
@@ -480,7 +492,7 @@ async function main() {
     console.log('[main] UI ready – app fully loaded');
 
     // Debug/test handle — lets automated tests drive the app from the console.
-    window.__glen = { mapManager, catalog, toolRegistry, agent, mcp, resultLayerManager };
+    window.__glen = { mapManager, catalog, toolRegistry, agent, mcp, resultLayerManager, chartStore };
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */

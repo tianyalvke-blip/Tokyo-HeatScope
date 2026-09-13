@@ -67,6 +67,25 @@ export class Agent {
         this.onError = () => { };
         this.onRetry = () => { };
         this.onCheckpoint = () => { };
+        this.contextProviders = new Set();
+    }
+
+    addContextProvider(provider) {
+        this.contextProviders.add(provider);
+        return () => this.contextProviders.delete(provider);
+    }
+
+    _runtimeContext() {
+        const parts = [];
+        for (const provider of this.contextProviders) {
+            try {
+                const value = provider();
+                if (value) parts.push(String(value));
+            } catch (err) {
+                console.warn('[Agent] runtime context provider failed:', err);
+            }
+        }
+        return parts.join('\n\n');
     }
 
     /**
@@ -155,8 +174,9 @@ export class Agent {
             turnMessages = resuming.turnMessages;
             turnMessages.push({ role: 'user', content: userMessage });
         } else {
+            const runtimeContext = this._runtimeContext();
             turnMessages = [
-                { role: 'system', content: this.systemPrompt },
+                { role: 'system', content: runtimeContext ? `${this.systemPrompt}\n\n${runtimeContext}` : this.systemPrompt },
                 ...this.messages.slice(-12),
             ];
         }

@@ -11,6 +11,7 @@ import { Agent } from '../app/agent.js';
 const tools = [
     'show_layer', 'get_schema', 'query', 'local_moran', 'rf_predict',
     'run_python', 'search_policy_knowledge', 'get_policy_evidence',
+    'simulate_feature_curve', 'create_chart', 'update_chart',
 ];
 
 {
@@ -60,8 +61,15 @@ const tools = [
 {
     assert.deepEqual(
         allowedToolsForIntent('scenario_prediction', tools),
-        ['show_layer', 'get_schema', 'query', 'rf_predict'],
+        ['show_layer', 'get_schema', 'query', 'rf_predict', 'simulate_feature_curve', 'create_chart', 'update_chart'],
     );
+}
+
+{
+    const fallback = fallbackTaskFrame('把图表纵轴改为相对基准的变化', tools, 'bad JSON');
+    assert.equal(fallback.status, 'supported');
+    assert.equal(fallback.intent, 'chart_edit');
+    assert.deepEqual(fallback.allowed_tools, ['create_chart', 'update_chart']);
 }
 
 {

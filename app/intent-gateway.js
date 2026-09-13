@@ -21,6 +21,7 @@ export const TASK_INTENTS = Object.freeze([
     'comparison',
     'association_analysis',
     'scenario_prediction',
+    'chart_edit',
     'policy_lookup',
     'integrated_planning',
     'custom_analysis',
@@ -49,7 +50,8 @@ const TOOL_POLICY = Object.freeze({
     hotspot_detection: [...MAP_TOOLS, ...DATA_TOOLS, 'local_moran'],
     comparison: [...MAP_TOOLS, ...DATA_TOOLS],
     association_analysis: [...MAP_TOOLS, ...DATA_TOOLS, 'run_python'],
-    scenario_prediction: [...MAP_TOOLS, ...DATA_TOOLS, 'rf_predict'],
+    scenario_prediction: [...MAP_TOOLS, ...DATA_TOOLS, 'rf_predict', 'simulate_feature_curve', 'create_chart', 'update_chart'],
+    chart_edit: ['create_chart', 'update_chart'],
     policy_lookup: [...MAP_TOOLS, ...POLICY_TOOLS],
     integrated_planning: [
         ...MAP_TOOLS, ...DATA_TOOLS, ...POLICY_TOOLS,
@@ -81,7 +83,7 @@ Scientific and operational boundaries:
 
 Allowed intent values:
 map_display, data_query, hotspot_detection, comparison, association_analysis,
-scenario_prediction, policy_lookup, integrated_planning, custom_analysis, conversation_help.
+scenario_prediction, chart_edit, policy_lookup, integrated_planning, custom_analysis, conversation_help.
 
 Allowed status values:
 - supported: the request can proceed.
@@ -141,6 +143,7 @@ function defaultResponse(status, userMessage) {
 
 function heuristicIntent(userMessage) {
     const text = (userMessage || '').toLowerCase();
+    if (/图表|曲线|图例|横轴|纵轴|基准线|baseline|chart|curve|legend|y\s*axis|x\s*axis|hide.*(day|night)|show.*(day|night)/.test(text)) return 'chart_edit';
     if (/政策|规划指引|指南|法规|policy|guideline|citation|依据/.test(text)) return 'policy_lookup';
     if (/如果|情景|模拟|预测|增加.*绿|减少.*建筑|what\s*if|scenario|predict/.test(text)) return 'scenario_prediction';
     if (/热点|冷点|聚集|莫兰|moran|hot\s*spot|cold\s*spot|cluster/.test(text)) return 'hotspot_detection';

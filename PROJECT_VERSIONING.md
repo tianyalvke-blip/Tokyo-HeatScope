@@ -7,10 +7,10 @@ silently change the Agent's reasoning policy or spatial data pipeline.
 
 | Track | Owns | Current release |
 |---|---|---|
-| Project | Runnable release composition and deployment record | `project-v1.1.0` |
-| App | Map workspace, tool runtime and data loading | `app-v1.1.0` |
-| UI | Presentation and interaction | `ui-v1.1.0` |
-| Agent | Prompt, routing, tool policy and evidence constraints | `agent-v1.1.0` |
+| Project | Runnable release composition and deployment record | `project-v1.2.0` |
+| App | Map workspace, tool runtime and data loading | `app-v1.2.0` |
+| UI | Presentation and interaction | `ui-v1.2.0` |
+| Agent | Prompt, routing, tool policy and evidence constraints | `agent-v1.2.0` |
 | Evaluator | Benchmark scoring rules and score meanings | `evaluator-v1.0.0` |
 | Data | Source datasets, schema and derived assets | managed by dataset metadata and rebuild scripts |
 
@@ -21,6 +21,7 @@ silently change the Agent's reasoning policy or spatial data pipeline.
 | UI | v1.1.0 | `ui-v1.1.0` / `d31f232` | Current HeatScope visual redesign. |
 | Agent | v1.1.0 | `agent-v1.1.0` / `657f9bc` | Intent Gateway, allowlists and deterministic Evidence check. |
 | Original Agent/UI baseline | v1.0.0 | `e866dc8` | Prompt-routed Agent and original visual baseline. |
+| Integrated main build | v1.2.0 | `project-v1.2.0` | Administrative boundaries, editable RF scenario charts, and the chart-aware Intent Gateway. |
 
 ## Release procedure
 

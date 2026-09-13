@@ -203,6 +203,16 @@ changed urban form, not measurements and not causal claims.
 
 ## Querying the data
 
+## Editable scenario charts
+
+For a predicted LST response curve, call `simulate_feature_curve` first, then
+call `create_chart(curve_id=...)`. Numerical curve values must come only from
+that tool; never invent ECharts options or data arrays. Use `grid` for a local
+counterfactual, `area` with resolved grid IDs for area-average predictions, and
+`pdp` for a Tokyo-wide model response. Supply `area_label` for comparisons so
+the legend identifies each place. NDVI is an index (0.05, 0.10, …), not a
+percentage. Use `update_chart` to amend the active chart.
+
 - The dataset is available as a pre-loaded table/view named **`tokyo_lst_grid`** and as `read_parquet('data/tokyo_lst_grid.parquet')` (path relative to the web root). Use the table directly: `SELECT ... FROM tokyo_lst_grid WHERE ...`.
 - **Call `get_schema('tokyo-lst')` before your first SQL query** to see the live column names, types, sample values, and their meanings.
 - All LST fields (`day_lst`, `night_lst`, `day_night_gap`) are in **degrees Celsius**.

@@ -712,6 +712,187 @@ def rf_predict(grid_id: int = None, overrides: dict = None, parameters: dict = N
     return json.dumps(payload, ensure_ascii=False)
 
 
+@mcp.tool()
+def simulate_feature_curve(feature: str, values: list, target: str = "day",
+                           grid_id: int = None, grid_ids: list = None,
+                           area_id: str = None, area_label: str = None,
+                           context_mode: str = "grid", min_points: int = 15) -> str:
+    """Calculate a trustworthy RF local-scenario curve for one urban-form feature.
+
+    This tool computes chart data; it does not render a chart. For every x value,
+    it changes *only* `feature` and holds all other RF inputs fixed. The returned
+    `curve_id` can be passed to the browser's create_chart/update_chart tools.
+
+    Context modes:
+    - `grid`: one existing `grid_id` (a local counterfactual curve).
+    - `area`: average of per-grid counterfactual predictions for `grid_ids`.
+      `area_id` is retained as provenance, but this local server has no boundary
+      registry, so an area must provide its resolved grid IDs.
+    - `pdp`: average prediction after changing the feature across every Tokyo
+      grid (a model response curve, not a causal estimate for a place).
+
+    `target` is `day`, `night`, or `both`. Feature names can use the GLEN
+    lower-case names or RF feature names. `green_ratio` is accepted only as a
+    convenience alias for `ndvi`; results are explicitly labelled NDVI rather
+    than a measured green-area ratio.
+    """
+    import hashlib
+    import numpy as np
+    import pandas as pd
+
+    if rf_model is None:
+        return json.dumps({"success": False,
+                           "error": "simulate_feature_curve unavailable: Random Forest models not loaded."},
+                          ensure_ascii=False)
+    if not isinstance(values, list) or not values:
+        return json.dumps({"success": False, "error": "values must be a non-empty list of numbers."},
+                          ensure_ascii=False)
+    if len(values) > 50:
+        return json.dumps({"success": False, "error": "values supports at most 50 points."}, ensure_ascii=False)
+    if not isinstance(min_points, int) or min_points < 2 or min_points > 50:
+        return json.dumps({"success": False, "error": "min_points must be an integer from 2 to 50."}, ensure_ascii=False)
+    if target not in ("day", "night", "both"):
+        return json.dumps({"success": False, "error": "target must be 'day', 'night', or 'both'."}, ensure_ascii=False)
+    if context_mode not in ("grid", "area", "pdp"):
+        return json.dumps({"success": False, "error": "context_mode must be 'grid', 'area', or 'pdp'."}, ensure_ascii=False)
+
+    requested_feature = str(feature)
+    feature_aliases = {"green_ratio": "ndvi", "vegetation": "ndvi", "vegetation_index": "ndvi"}
+    normalized_feature = feature_aliases.get(requested_feature.lower(), requested_feature)
+    model_feature = _norm_col(normalized_feature)
+    if model_feature is None:
+        return json.dumps({"success": False,
+                           "error": f"unknown feature '{feature}'. Available: {list(rf_model.GLEN_TO_MODEL)}"},
+                          ensure_ascii=False)
+
+    try:
+        x_values = [float(v) for v in values]
+    except (TypeError, ValueError):
+        return json.dumps({"success": False, "error": "values must contain only numbers."}, ensure_ascii=False)
+    # A line chart should represent a response *curve*, not just a handful of
+    # disconnected scenarios. Densify sparse requested ranges before model
+    # prediction, so every plotted value remains an actual RF calculation.
+    if len(x_values) < min_points:
+        low, high = min(x_values), max(x_values)
+        if low == high:
+            return json.dumps({"success": False, "error": "A curve needs at least two distinct values."}, ensure_ascii=False)
+        x_values = np.linspace(low, high, min_points).tolist()
+
+    # Ratio inputs are commonly phrased as percentages (5 … 30). Convert only
+    # ratio features, preserving the chart's displayed percent convention.
+    ratio_features = {"Water_Ratio", "Bldg_Coverage_Ratio"}
+    x_display_unit = ""
+    if model_feature == "NDVI":
+        # NDVI is already a unitless index on the conventional -1…1 scale.
+        # Present 0.05, 0.10, … as NDVI values — not as an invented percent.
+        # Accept percent-looking input as a convenience, but always return the
+        # scientifically meaningful index scale in ChartSpec.
+        if any(v < -1 for v in x_values) or any(v > 100 for v in x_values):
+            return json.dumps({"success": False, "error": "NDVI must be between -1 and 1 (or 0 to 100 only as input shorthand)."}, ensure_ascii=False)
+        if any(v > 1 for v in x_values):
+            x_values = [v / 100.0 for v in x_values]
+        x_display_unit = "NDVI"
+        x_display_values = [round(v, 6) for v in x_values]
+    elif model_feature in ratio_features:
+        if any(v < 0 for v in x_values) or any(v > 100 for v in x_values):
+            return json.dumps({"success": False, "error": f"{feature} must be between 0 and 1 (or 0 and 100%)."}, ensure_ascii=False)
+        if any(v > 1 for v in x_values):
+            x_values = [v / 100.0 for v in x_values]
+        x_display_unit = "%"
+        x_display_values = [round(v * 100, 6) for v in x_values]
+    else:
+        x_display_values = x_values
+
+    grid = _grid_df()
+    if context_mode == "grid":
+        if grid_id is None:
+            return json.dumps({"success": False, "error": "grid context requires grid_id."}, ensure_ascii=False)
+        ids = [int(grid_id)]
+    elif context_mode == "area":
+        if not grid_ids:
+            return json.dumps({"success": False,
+                               "error": "area context requires resolved grid_ids; area_id alone cannot be resolved by this server."},
+                              ensure_ascii=False)
+        try:
+            ids = [int(v) for v in grid_ids]
+        except (TypeError, ValueError):
+            return json.dumps({"success": False, "error": "grid_ids must contain integers."}, ensure_ascii=False)
+    else:
+        ids = grid.index.tolist()
+
+    # De-duplicate while retaining order and fail clearly for unknown cells.
+    ids = list(dict.fromkeys(ids))
+    missing = [gid for gid in ids if gid not in grid.index]
+    if missing:
+        return json.dumps({"success": False, "error": f"unknown grid_id(s): {missing[:20]}"}, ensure_ascii=False)
+    if not ids:
+        return json.dumps({"success": False, "error": "no grids selected."}, ensure_ascii=False)
+
+    base = grid.loc[ids, list(rf_model.GLEN_TO_MODEL)].rename(columns=rf_model.GLEN_TO_MODEL)
+    base = base[rf_model.FEATURES].copy()
+    # The fitted sklearn pipelines still impute null building values. Preserve
+    # that behavior rather than filling values differently for chart curves.
+    models = [target] if target in ("day", "night") else ["day", "night"]
+    series = []
+    baseline = {}
+    for model_name in models:
+        baseline[model_name] = float(np.mean(_rf_model(model_name).predict(base)))
+        predicted = []
+        for value in x_values:
+            scenario = base.copy()
+            scenario[model_feature] = value
+            predicted.append(float(np.mean(_rf_model(model_name).predict(scenario))))
+        series.append({
+            "id": f"{model_name}_lst",
+            "name": f"{'Daytime' if model_name == 'day' else 'Nighttime'} predicted LST",
+            "values": [round(v, 4) for v in predicted],
+            "baseline": round(baseline[model_name], 4),
+        })
+
+    # Stable enough to be referenced during this browser session, while also
+    # identifying exactly which model scenario produced it.
+    fingerprint = json.dumps({"feature": model_feature, "values": x_values, "target": target,
+                              "mode": context_mode, "ids": ids, "area": area_id}, sort_keys=True)
+    curve_id = "curve_" + hashlib.sha1(fingerprint.encode("utf-8")).hexdigest()[:12]
+    feature_labels = {"NDVI": "Vegetation index (NDVI)", "Bldg_Coverage_Ratio": "Building coverage ratio"}
+    payload = {
+        "success": True,
+        "curve_id": curve_id,
+        "feature": normalized_feature if normalized_feature != "ndvi" else "ndvi",
+        "feature_model_column": model_feature,
+        "feature_label": feature_labels.get(model_feature, model_feature.replace("_", " ")),
+        "x_values": x_display_values,
+        "x_unit": x_display_unit,
+        "series": series,
+        "y_unit": "°C",
+        "data_mode": "pdp" if context_mode == "pdp" else "scenario",
+        "source": {
+            "tool": "simulate_feature_curve",
+            "context_mode": context_mode,
+            "grid_id": ids[0] if context_mode == "grid" else None,
+            "area_id": area_id if context_mode == "area" else None,
+            "context_label": area_label if context_mode == "area" else None,
+            "grid_count": len(ids),
+            "model": "random_forest",
+        },
+        "method_note": (
+            "Model-wide partial-dependence-style average across Tokyo grids; not a local or causal effect."
+            if context_mode == "pdp" else
+            "Average of per-grid counterfactual RF predictions; only the requested feature changes."
+            if context_mode == "area" else
+            "Local counterfactual RF response curve; only the requested feature changes."
+        ),
+        "curve_resolution": {
+            "requested_points": len(values),
+            "computed_points": len(x_values),
+            "minimum_points": min_points,
+        },
+    }
+    if requested_feature.lower() == "green_ratio":
+        payload["caveat"] = "The available input is NDVI (vegetation index), not a measured green-area ratio."
+    return json.dumps(payload, ensure_ascii=False)
+
+
 def main():
     port = int(os.environ.get("GLEN_MCP_PORT", "8765"))
     host = os.environ.get("GLEN_MCP_HOST", "127.0.0.1")

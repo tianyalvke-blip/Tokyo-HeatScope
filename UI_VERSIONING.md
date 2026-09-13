@@ -10,6 +10,7 @@ controls. They do not change the Agent reasoning contract or analytical data.
 |---|---|---|---|
 | v1.0.0 | `ui-v1.0.0` | `e866dc8` | Original visual baseline preserved before the current redesign. |
 | v1.1.0 | `ui-v1.1.0` | `d31f232` | Current HeatScope visual redesign: landing experience, workspace styling and responsive interaction refinements. |
+| v1.2.0 | `ui-v1.2.0` | pending this release | In-chat editable scenario charts: legend toggles, immediate Y-axis switching, baseline reference and direct NDVI axis values. |
 
 ## Rules
 
