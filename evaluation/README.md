@@ -13,6 +13,27 @@ It does not replace the map application or the Agent loop.
 .venv\Scripts\python evaluation\dashboard.py
 ```
 
+## Phoenix local workspace
+
+Phoenix is the local visual workspace for inspecting Agent traces, maintaining
+datasets, running experiments, and adding human annotations. It is deliberately
+kept separate from the HeatScope runtime virtual environment.
+
+```powershell
+evaluation\.phoenix-venv\Scripts\phoenix.exe serve
+```
+
+Then open `http://127.0.0.1:6006`. The first integration phase exports the
+existing normalized benchmark traces; it does not send project data to a cloud
+service. Agent versions are recorded as `agent_version` / `stack_id` attributes,
+so `stack-v1.0` and `stack-v1.1` can be filtered and compared in the Phoenix UI.
+
+After a benchmark, export a saved run into the local workspace:
+
+```powershell
+evaluation\.phoenix-venv\Scripts\python.exe evaluation\phoenix_export.py --run <run_id>
+```
+
 Agent aliases `gateway_off` and `gateway_on` resolve through `agents/registry.yaml`.
 Stack aliases `baseline` and `latest` resolve through `stacks/registry.yaml`; the UI
 shows real version numbers (`v1.0`, `v1.1`). For full combinations, use

@@ -95,6 +95,7 @@ server/ui_*.png
 
 # Python venv
 .venv/
+evaluation/.phoenix-venv/
 
 # Spatial tool caches (regenerable)
 server/cache/
