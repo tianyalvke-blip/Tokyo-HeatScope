@@ -7,10 +7,10 @@ silently change the Agent's reasoning policy or spatial data pipeline.
 
 | Track | Owns | Current release |
 |---|---|---|
-| Project | Runnable release composition and deployment record | `project-v1.2.0` |
-| App | Map workspace, tool runtime and data loading | `app-v1.2.0` |
-| UI | Presentation and interaction | `ui-v1.2.0` |
-| Agent | Prompt, routing, tool policy and evidence constraints | `agent-v1.2.0` |
+| Project | Runnable release composition and deployment record | `project-v1.2.1` |
+| App | Map workspace, tool runtime and data loading | `app-v1.2.1` |
+| UI | Presentation and interaction | `ui-v1.2.1` |
+| Agent | Prompt, routing, tool policy and evidence constraints | `agent-v1.2.1` |
 | Evaluator | Benchmark scoring rules and score meanings | `evaluator-v1.0.0` |
 | Data | Source datasets, schema and derived assets | managed by dataset metadata and rebuild scripts |
 
@@ -22,6 +22,7 @@ silently change the Agent's reasoning policy or spatial data pipeline.
 | Agent | v1.1.0 | `agent-v1.1.0` / `657f9bc` | Intent Gateway, allowlists and deterministic Evidence check. |
 | Original Agent/UI baseline | v1.0.0 | `e866dc8` | Prompt-routed Agent and original visual baseline. |
 | Integrated main build | v1.2.0 | `project-v1.2.0` | Administrative boundaries, editable RF scenario charts, and the chart-aware Intent Gateway. |
+| Integrated release patch | v1.2.1 | `project-v1.2.1` | Registers the included ward and town GeoJSON as operational map layers. |
 
 ## Release procedure
 

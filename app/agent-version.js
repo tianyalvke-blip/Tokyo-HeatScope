@@ -6,10 +6,10 @@
  * so it can be compared or rolled back without guessing from a UI commit.
  */
 export const CURRENT_AGENT_RELEASE = Object.freeze({
-    version: '1.2.0',
+    version: '1.2.1',
     label: 'Intent Gateway with scenario charts',
-    gitTag: 'agent-v1.2.0',
-    implementationCommit: 'project-v1.2.0',
+    gitTag: 'agent-v1.2.1',
+    implementationCommit: 'project-v1.2.1',
     releasedOn: '2026-09-13',
     capabilities: [
         'structured_task_frame',

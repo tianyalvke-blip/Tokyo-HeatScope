@@ -140,7 +140,23 @@ async function main() {
     sidebarHooks.onResizeTick = () => mapManager.map.resize();
     sidebarHooks.onResizeEnd = () => mapManager.map.resize();
     mapManager.generateMenu(layoutRefs.menuMountId);
-    mapManager.addLayersFromCatalog(catalog.getMapLayerConfigs());
+    const boundaryLayerConfigs = (appConfig.boundary_overlays || []).map(overlay => ({
+        layerId: overlay.id,
+        datasetId: 'tokyo-administrative-boundaries',
+        group: overlay.group || 'Administrative Boundaries',
+        groupCollapsed: overlay.group_collapsed ?? true,
+        displayName: overlay.display_name || overlay.id,
+        type: 'vector',
+        renderType: 'line',
+        source: { type: 'geojson', data: overlay.url },
+        paint: overlay.paint,
+        tooltipFields: overlay.tooltip_fields || null,
+        defaultVisible: overlay.visible === true,
+    }));
+    mapManager.addLayersFromCatalog([
+        ...catalog.getMapLayerConfigs(),
+        ...boundaryLayerConfigs,
+    ]);
     mapManager.generateControls('layer-controls-container');
 
     /* ── 3a. Analysis Result Layer System ─────────────────────────────── */

@@ -12,6 +12,7 @@ active for a user turn.
 | v1.0.0 | `agent-v1.0.0` | `e866dc8` | The LLM received the system prompt and full tool schemas, then independently interpreted the request, selected tools and wrote the final answer. There was no structured task frame, tool allowlist or result validator. |
 | v1.1.0 | `agent-v1.1.0` | `168d7a2` | Adds the Intent Gateway, a validated Task Frame, intent-specific tool allowlists and deterministic tool-result validation before the next LLM round. |
 | v1.2.0 | `agent-v1.2.0` | pending this release | Keeps the Intent Gateway and adds chart-aware runtime context plus a dedicated `chart_edit` intent for trusted scenario-chart interactions. |
+| v1.2.1 | `agent-v1.2.1` | pending this release | Releases the v1.2 chart-aware Agent with the boundary-enabled map configuration. |
 
 ## What v1.1 adds
 

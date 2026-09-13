@@ -29,6 +29,34 @@
         ]
     },
 
+    "intent_gateway": {
+        "enabled": true,
+        "show_task_frame": true
+    },
+
+    "boundary_overlays": [
+        {
+            "id": "tokyo-23-wards-boundary",
+            "display_name": "Tokyo 23 Wards (2020)",
+            "group": "Administrative Boundaries",
+            "group_collapsed": false,
+            "url": "data/boundaries/tokyo_23_wards_estat_2020.geojson",
+            "visible": true,
+            "paint": { "line-color": "#173f5f", "line-width": 2.2, "line-opacity": 0.92 },
+            "tooltip_fields": ["ward_name", "ward_code", "source_year"]
+        },
+        {
+            "id": "tokyo-town-boundary",
+            "display_name": "Tokyo Town Boundaries (2020)",
+            "group": "Administrative Boundaries",
+            "group_collapsed": false,
+            "url": "data/boundaries/tokyo_23_wards_town_level_estat_2020.geojson",
+            "visible": false,
+            "paint": { "line-color": "#c95c30", "line-width": 0.65, "line-opacity": 0.7 },
+            "tooltip_fields": ["town_name", "ward_name", "ward_code", "component_area_count", "source_year"]
+        }
+    ],
+
     "welcome": {
         "message": "与地图对话，读懂城市热环境\n\n自然语言驱动的城市热环境规划智能平台。基于 200 m 网格探索城市 23 区昼夜地表温度（LST），结合空间分析工具、城市形态\u2014LST 随机森林（RF）模型与规划政策 RAG 知识库，支持热环境识别、空间统计、成因诊断、区域比较、情景模拟与规划决策。\n\n你可以试着问：",
         "examples": [
