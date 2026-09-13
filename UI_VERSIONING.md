@@ -12,6 +12,7 @@ controls. They do not change the Agent reasoning contract or analytical data.
 | v1.1.0 | `ui-v1.1.0` | `d31f232` | Current HeatScope visual redesign: landing experience, workspace styling and responsive interaction refinements. |
 | v1.2.0 | `ui-v1.2.0` | pending this release | In-chat editable scenario charts: legend toggles, immediate Y-axis switching, baseline reference and direct NDVI axis values. |
 | v1.2.1 | `ui-v1.2.1` | Makes the 23-ward boundary visible and the town-level boundary selectable in the map controls. |
+| v1.2.2 | `ui-v1.2.2` | Replaces the three homepage PNGs with WebP (4.70 MB → 0.58 MB) and lazy-loads the two below-the-fold illustrations. |
 
 ## Rules
 

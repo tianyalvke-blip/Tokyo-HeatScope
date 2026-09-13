@@ -5,12 +5,12 @@
  * reasoning contract in agent-version.js.
  */
 export const CURRENT_UI_RELEASE = Object.freeze({
-    version: '1.1.0',
-    label: 'HeatScope visual redesign',
-    gitTag: 'ui-v1.1.0',
-    implementationCommit: 'd31f232',
-    releasedOn: '2026-09-11',
-    scope: ['landing_page', 'map_workspace', 'responsive_chat', 'layer_controls'],
+    version: '1.2.2',
+    label: 'Homepage image-performance patch',
+    gitTag: 'ui-v1.2.2',
+    implementationCommit: 'project-v1.2.2',
+    releasedOn: '2026-09-14',
+    scope: ['landing_page', 'webp_images', 'lazy_loading'],
 });
 
 export const UI_RELEASE_HISTORY = Object.freeze([
