@@ -79,6 +79,8 @@ Scientific and operational boundaries:
 - Do not promise weather forecasts or future air-temperature prediction.
 - Do not accept requests that require unavailable datasets, places outside the loaded Tokyo scope, destructive actions, credential access, or unsupported causal proof.
 - A vague but answerable request may use the documented default dataset. Ask one clarification only when a missing choice would materially change the analysis.
+- Scenario default: when a place and an intervention feature are clear but its amount is not (for example "Ikebukuro had more green space"), this is supported. Do NOT ask for a percentage, target NDVI, or magnitude. Set intent to scenario_prediction, method to simulate_feature_curve, leave missing_fields empty, and let the main Agent run the default counterfactual response curve.
+- Only ask a scenario clarification when the location/area cannot be resolved, the intervention feature itself is ambiguous, or the request contains conflicting constraints. A numeric intervention amount is never required for a feature-response curve.
 - Greetings and product-help questions are supported as conversation_help and require no tools.
 
 Allowed intent values:
@@ -122,6 +124,15 @@ function clampConfidence(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) return 0;
     return Math.max(0, Math.min(1, number));
+}
+
+// These fields describe a *point* counterfactual, but the product has a safe
+// default for them: scan a trusted feature-response curve rather than asking
+// the user to invent an arbitrary value. Keep location and feature fields out
+// of this list: those can still be genuinely essential.
+function isDefaultableScenarioField(field) {
+    const normalized = String(field || '').toLowerCase().replace(/[\s-]+/g, '_');
+    return /(?:amount|magnitude|increment|increase|decrease|delta|percentage|percent|target_(?:value|level|ndvi|amount)|(?:green|vegetation|ndvi|feature|intervention).*?(?:change|value|level|amount))/.test(normalized);
 }
 
 function defaultResponse(status, userMessage) {
@@ -173,12 +184,21 @@ export function normalizeTaskFrame(raw, userMessage, availableToolNames) {
     const proposedStatus = asText(raw?.status);
     const proposedIntent = asText(raw?.intent);
     const missingFields = asStringArray(raw?.missing_fields);
+    const fallbackIntent = heuristicIntent(userMessage) || 'conversation_help';
+    const intent = TASK_INTENTS.includes(proposedIntent) ? proposedIntent : fallbackIntent;
+    const requiredMissingFields = intent === 'scenario_prediction'
+        ? missingFields.filter(field => !isDefaultableScenarioField(field))
+        : missingFields;
     let status = TASK_STATUSES.includes(proposedStatus) ? proposedStatus : 'unsupported';
     // A frame cannot both be admitted and declare an essential missing input.
     // Downgrade it deterministically instead of hoping the planner notices.
-    if (status === 'supported' && missingFields.length > 0) status = 'needs_clarification';
-    const fallbackIntent = heuristicIntent(userMessage) || 'conversation_help';
-    const intent = TASK_INTENTS.includes(proposedIntent) ? proposedIntent : fallbackIntent;
+    if (status === 'supported' && requiredMissingFields.length > 0) status = 'needs_clarification';
+    // Convert an unnecessary request for a scenario magnitude into the product
+    // default: a counterfactual feature-response curve.
+    if (intent === 'scenario_prediction' && requiredMissingFields.length === 0
+        && (status === 'needs_clarification' || missingFields.length > 0)) {
+        status = 'supported';
+    }
     const allowedTools = status === 'supported'
         ? allowedToolsForIntent(intent, availableToolNames)
         : [];
@@ -189,9 +209,11 @@ export function normalizeTaskFrame(raw, userMessage, availableToolNames) {
         spatial_scope: asText(raw?.spatial_scope) || null,
         time_period: asText(raw?.time_period) || null,
         indicator: asText(raw?.indicator) || null,
-        method: asText(raw?.method) || null,
-        output: asStringArray(raw?.output),
-        missing_fields: missingFields,
+        method: asText(raw?.method) || (intent === 'scenario_prediction' ? 'simulate_feature_curve' : null),
+        output: asStringArray(raw?.output).length
+            ? asStringArray(raw?.output)
+            : (intent === 'scenario_prediction' ? ['response_curve', 'chart', 'method_note'] : []),
+        missing_fields: requiredMissingFields,
         safety_notes: asStringArray(raw?.safety_notes),
         user_response: status === 'supported'
             ? ''

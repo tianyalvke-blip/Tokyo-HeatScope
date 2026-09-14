@@ -66,6 +66,23 @@ const tools = [
 }
 
 {
+    const frame = normalizeTaskFrame({
+        status: 'needs_clarification',
+        intent: 'scenario_prediction',
+        spatial_scope: 'Ikebukuro',
+        indicator: 'land_surface_temperature',
+        missing_fields: ['green_space_change_amount'],
+        confidence: 0.92,
+    }, 'How much could LST decrease if Ikebukuro had more green space?', tools);
+
+    assert.equal(frame.status, 'supported');
+    assert.equal(frame.method, 'simulate_feature_curve');
+    assert.deepEqual(frame.missing_fields, []);
+    assert.deepEqual(frame.output, ['response_curve', 'chart', 'method_note']);
+    assert.equal(frame.allowed_tools.includes('simulate_feature_curve'), true);
+}
+
+{
     const fallback = fallbackTaskFrame('把图表纵轴改为相对基准的变化', tools, 'bad JSON');
     assert.equal(fallback.status, 'supported');
     assert.equal(fallback.intent, 'chart_edit');

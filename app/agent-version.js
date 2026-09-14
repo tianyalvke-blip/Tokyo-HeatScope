@@ -6,11 +6,11 @@
  * so it can be compared or rolled back without guessing from a UI commit.
  */
 export const CURRENT_AGENT_RELEASE = Object.freeze({
-    version: '1.2.1',
-    label: 'Intent Gateway with scenario charts',
-    gitTag: 'agent-v1.2.1',
-    implementationCommit: 'project-v1.2.1',
-    releasedOn: '2026-09-13',
+    version: '1.2.2',
+    label: 'Intent Gateway with default response curves',
+    gitTag: 'agent-v1.2.2',
+    implementationCommit: 'project-v1.2.3',
+    releasedOn: '2026-09-14',
     capabilities: [
         'structured_task_frame',
         'tool_allowlist',
@@ -18,6 +18,7 @@ export const CURRENT_AGENT_RELEASE = Object.freeze({
         'evidence_constrained_answers',
         'chart_edit_intent',
         'chart_aware_runtime_context',
+        'default_counterfactual_response_curves',
     ],
 });
 

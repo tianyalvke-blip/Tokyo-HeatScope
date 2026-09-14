@@ -213,6 +213,18 @@ counterfactual, `area` with resolved grid IDs for area-average predictions, and
 the legend identifies each place. NDVI is an index (0.05, 0.10, …), not a
 percentage. Use `update_chart` to amend the active chart.
 
+### Default response-curve policy
+
+When a user asks what would happen if a named place had “more green space”,
+“less building coverage”, or another clear single-feature intervention **but
+does not specify an amount**, do not ask for a target value first. Resolve the
+place, construct the relevant grid set, then run an area-average
+`simulate_feature_curve` over the feature’s documented scan range (for NDVI:
+`0.05` to `0.60` in `0.05` steps), and create a chart from its `curve_id`.
+Explain that it is an average per-grid counterfactual RF response, not a causal
+forecast. Ask a clarifying question only if the place cannot be resolved, the
+intervention feature is unclear, or the user supplies contradictory constraints.
+
 - The dataset is available as a pre-loaded table/view named **`tokyo_lst_grid`** and as `read_parquet('data/tokyo_lst_grid.parquet')` (path relative to the web root). Use the table directly: `SELECT ... FROM tokyo_lst_grid WHERE ...`.
 - **Call `get_schema('tokyo-lst')` before your first SQL query** to see the live column names, types, sample values, and their meanings.
 - All LST fields (`day_lst`, `night_lst`, `day_night_gap`) are in **degrees Celsius**.

@@ -13,6 +13,7 @@ active for a user turn.
 | v1.1.0 | `agent-v1.1.0` | `168d7a2` | Adds the Intent Gateway, a validated Task Frame, intent-specific tool allowlists and deterministic tool-result validation before the next LLM round. |
 | v1.2.0 | `agent-v1.2.0` | pending this release | Keeps the Intent Gateway and adds chart-aware runtime context plus a dedicated `chart_edit` intent for trusted scenario-chart interactions. |
 | v1.2.1 | `agent-v1.2.1` | pending this release | Releases the v1.2 chart-aware Agent with the boundary-enabled map configuration. |
+| v1.2.2 | `agent-v1.2.2` | pending this release | Scenario requests with a clear place and feature default to a counterfactual response curve; unspecified intervention magnitude no longer triggers a clarification. |
 
 ## What v1.1 adds
 

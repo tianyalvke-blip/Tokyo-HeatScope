@@ -4,12 +4,12 @@
 权威本地仓库：`F:\LST_AGENT\LST_AGENT_v1.0`  
 远程仓库：`https://github.com/tianyalvke-blip/Tokyo-HeatScope.git`
 
-> **当前整合发布（v1.2.2）**：请从干净工作区
+> **当前整合发布（v1.2.3）**：请从干净工作区
 > `F:\LST_AGENT\HeatScope-main-build` 的 `codex/heatscope-main-build` 分支发布。
 > 它将“东京 23 区 / 町级边界图层”与“可编辑 RF 情景折线图”合并，且不带入原
 > 工作区的未提交实验修改。完成审阅后，此分支的提交将成为新的本地 `main`。
 >
-> 版本组成：App `v1.2.1`、UI `v1.2.2`、Agent `v1.2.1`。边界 GeoJSON 已随 Git
+> 版本组成：App `v1.2.1`、UI `v1.2.2`、Agent `v1.2.2`。边界 GeoJSON 已随 Git
 > 追踪；200m/400m 网格、RF 模型和 PMTiles 底图仍是部署资产，见
 > `RUNTIME_ASSETS.md`。下文的 v1.0/v1.1 记录是历史评测与回滚说明。
 
